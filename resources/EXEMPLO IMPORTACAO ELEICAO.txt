@@ -1,0 +1,24 @@
+POLL;Eleição 2020;2020-04-25;2020-05-14
+QUESTION;Passo 1;Diretoria;1
+OPTION;1;101;Chapa 1<br>Presidente: Nome do Candidato<br>Vice-Presidente: Nome do Candidato<br>Secretário: Nome do Candidato
+OPTION;2;102;Chapa 2<br>Presidente: Nome do Candidato<br>Vice-Presidente: Nome do Candidato<br>Secretário: Nome do Candidato
+OPTION;3;103;Chapa 3<br>Presidente: Nome do Candidato<br>Vice-Presidente: Nome do Candidato<br>Secretário: Nome do Candidato
+QUESTION;Passo 2;Conselheiro Titular;2
+OPTION;1;201;Candidato 1
+OPTION;2;202;Candidato 2
+OPTION;3;203;Candidato 3
+OPTION;4;204;Candidato 4
+OPTION;5;205;Candidato 5
+OPTION;6;206;Candidato 6
+OPTION;7;207;Candidato 7
+QUESTION;Passo 3;Conselheiro Suplente;2
+OPTION;1;301;Suplente 1
+OPTION;2;302;Suplente 2
+OPTION;3;303;Suplente 3
+OPTION;4;304;Suplente 4
+OPTION;5;305;Suplente 5
+OPTION;6;306;Suplente 6
+OPTION;7;307;Suplente 7
+OPTION;8;308;Suplente 8
+OPTION;9;309;Suplente 9
+OPTION;10;310;Suplente 10

@@ -1,0 +1,5 @@
+Associado 1;00000000001;associado1@swge.com.br;(51)91111-1111
+Associado 2;00000000002;associado2@swge.com.br;(51)91111-1112
+Associado 3;00000000003;associado3@swge.com.br;(51)91111-1113
+Associado 4;00000000004;associado4@swge.com.br;(51)91111-1114
+Associado 5;00000000005;associado5@swge.com.br;(51)91111-1115

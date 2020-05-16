@@ -1,0 +1,18 @@
+##### LOCAWEB - NAO REMOVER #####
+AddHandler php73-script .php
+suPHP_ConfigPath /home/afisvec/
+##### LOCAWEB - NAO REMOVER #####
+
+RewriteCond %{HTTP_HOST} ^eleicoes\.afisvec\.org\.br [NC]
+RewriteCond %{SERVER_PORT} 80
+RewriteRule ^(.*)$ https://afisvec.org.br/eleicoes/$1 [R,L]
+
+RewriteCond %{HTTP_HOST} ^afisvec\.org\.br [NC]
+RewriteCond %{SERVER_PORT} 80
+RewriteRule ^(.*)$ https://afisvec.org.br/eleicoes/$1 [R,L]
+
+<IfModule mod_rewrite.c>
+    RewriteEngine on
+    RewriteCond %{REQUEST_URI} !^public
+    RewriteRule ^(.*)$ https://afisvec.org.br/eleicoes/public/$1 [L]
+</IfModule>
