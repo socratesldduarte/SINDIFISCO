@@ -1,6 +1,6 @@
 <?php
 
-namespace App;
+namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
@@ -12,15 +12,15 @@ class UserVote extends Model
     ];
     protected $dates = ['created_at', 'updated_at'];
 
-    private function poll() {
+    public function poll() {
         return $this->belongsTo(Poll::class, 'poll_id');
     }
 
-    private function user() {
+    public function user() {
         return $this->belongsTo(User::class, 'user_id');
     }
 
-    private function uservotedetails() {
+    public function uservotedetails() {
         return $this->hasMany(UserVoteDetail::class, 'vote');
     }
 }

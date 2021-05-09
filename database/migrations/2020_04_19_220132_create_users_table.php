@@ -15,6 +15,7 @@ class CreateUsersTable extends Migration
     {
         Schema::create('users', function (Blueprint $table) {
             $table->id();
+            $table->unsignedBigInteger('poll_id')->nullable();
 
             $table->string('document', 11);
             $table->boolean('able');
@@ -23,9 +24,12 @@ class CreateUsersTable extends Migration
             $table->string('mobile', 40);
             $table->boolean('administrator')->default(false);
             $table->boolean('committee')->default(false);
+            $table->boolean('can_be_voted')->default(true);
             $table->string('password');
             $table->timestamp('enabled_until')->nullable();
 
+            $table->unique(['poll_id', 'document']);
+            $table->foreign('poll_id')->references('id')->on('polls');
             $table->timestamps();
         });
     }

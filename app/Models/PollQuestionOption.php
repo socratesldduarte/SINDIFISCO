@@ -1,6 +1,6 @@
 <?php
 
-namespace App;
+namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
@@ -12,11 +12,11 @@ class PollQuestionOption extends Model
     ];
     protected $dates = ['created_at', 'updated_at'];
 
-    private function pollquestion() {
+    public function pollquestion() {
         return $this->belongsTo(PollQuestion::class, 'poll_question_id');
     }
 
-    private function uservotedetails() {
+    public function uservotedetails() {
         return $this->hasMany(UserVoteDetail::class, 'poll_question_option_id');
     }
 }

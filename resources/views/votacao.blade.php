@@ -22,7 +22,7 @@
     <h1>&nbsp;</h1>
     <img class="mb-4" src="{{ asset("img/AFISVEC.png") }}" alt="">
     <h1 class="h3 mb-3 font-weight-normal">{{ $poll->name }}</h1>
-    <h2 class="h3 mb-3 font-weight-normal">{{ \App\User::find(session('votacao_user_id'))->name }}</h2>
+    <h2 class="h3 mb-3 font-weight-normal">Eleitor: {{ $user->name }}</h2>
     <div class="container">
         <div style="background-color: #FFFFFF; padding: 20px 0px 20px 0px;">
             <div class="col-12">
@@ -32,7 +32,7 @@
                 <div id="smartwizard">
                     <ul>
                         <?php $intCount = 0; ?>
-                        @foreach($pollquestions as $pollquestion)
+                        @foreach($poll->pollquestions as $pollquestion)
                             <?php $intCount += 1; ?>
                             <li>
                                 <a href="#step-{{ $intCount }}">
@@ -51,7 +51,7 @@
 
                     <div>
                         <?php $intCount = 0; ?>
-                        @foreach($pollquestions as $pollquestion)
+                        @foreach($poll->pollquestions as $pollquestion)
                             <?php $intCount += 1; ?>
                             <input type="hidden" name="selecao_{{$intCount}}" value="{{$pollquestion->selection_number}}">
                             <div id="step-{{ $intCount }}" class="">
@@ -63,24 +63,23 @@
                                 @endif
                                 <div class="form-group">
                                     <?php
-                                    $pollquestionoptions = \App\PollQuestionOption::where('poll_question_id', $pollquestion->id)->where('order', '<>', 0)->where('order', '<>', 999)->orderby('order')->get();
-                                    foreach ($pollquestionoptions as $pollquestionoption) {
+                                    foreach ($pollquestion->pollquestionoptions()->where('order', '<>', 2)->where('order', '<>', 999)->orderby('order')->get() as $pollquestionoption) {
                                         if ( $pollquestion->selection_number == 1 ) {
                                     ?>
-                                        <input type="radio" class="form-group" name="questao_{{ $pollquestion->id }}" value="{{ $pollquestionoption->id }}">&nbsp;{{ $pollquestionoption->option . ' - ' }} {!! $pollquestionoption->description !!}<br><br>
+                                        <br><input type="radio" class="form-group" name="questao_{{ $pollquestion->id }}" value="{{ $pollquestionoption->id }}">&nbsp;{{ $pollquestionoption->option . ' - ' }} {!! $pollquestionoption->description !!}<br>
                                     <?php
                                         } else {
                                     ?>
-                                        <input type="checkbox" class="form-group" name="questao_{{ $pollquestion->id }}[]" id="questao_{{$intCount - 1}}" value="{{ $pollquestionoption->id }}">&nbsp;{{ $pollquestionoption->option . ' - ' }} {!! $pollquestionoption->description !!}<br><br>
+                                        <br><input type="checkbox" class="form-group" name="questao_{{ $pollquestion->id }}[]" id="questao_{{$intCount - 1}}" value="{{ $pollquestionoption->id }}">&nbsp;{{ $pollquestionoption->option . ' - ' }} {!! $pollquestionoption->description !!}<br>
                                     <?php
                                         }
                                     }
-                                    $pollquestionoptionNulo = \App\PollQuestionOption::where('poll_question_id', $pollquestion->id)->where('order', 999)->first();
+                                    $pollquestionoptionNulo = $pollquestion->pollquestionoptions()->where('poll_question_id', $pollquestion->id)->where('order', 999)->first();
                                     if ($pollquestionoptionNulo) {
                                         if ( $pollquestion->selection_number == 1 ) {
                                             if ($pollquestionoptionNulo) {
                                     ?>
-                                        <input type="radio" class="form-group" name="questao_{{ $pollquestion->id }}" value="{{ $pollquestionoptionNulo->id }}">&nbsp;{{ $pollquestionoptionNulo->option . ' - ' }} {!! $pollquestionoptionNulo->description !!}<br><br>
+                                        <br><input type="radio" class="form-group" name="questao_{{ $pollquestion->id }}" value="{{ $pollquestionoptionNulo->id }}">&nbsp;{{ $pollquestionoptionNulo->option . ' - ' }} {!! $pollquestionoptionNulo->description !!}<br>
                                     <?php
                                             }
                                         } else {
@@ -145,7 +144,7 @@
 
     // Initialize the leaveStep event
     $("#smartwizard").on("leaveStep", function(e, anchorObject, stepNumber, stepDirection) {
-        if (stepNumber < {{ count($pollquestions) }}) {
+        if (stepNumber < {{ count($poll->pollquestions) }}) {
             //DETERMINAR QUANTOS ITENS FORAM SELECIONADOS
             if ($("input[name='selecao_" + (stepNumber + 1) + "']").val() > 1) {
                 //É CHECKBOX

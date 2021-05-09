@@ -1,6 +1,6 @@
 <?php
 
-namespace App;
+namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
@@ -13,7 +13,7 @@ class Log extends Model
     ];
     protected $dates = ['created_at', 'updated_at'];
 
-    private function user() {
+    public function user() {
         return $this->belongsTo(User::class, 'user_id');
     }
 }

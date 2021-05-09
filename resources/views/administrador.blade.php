@@ -31,7 +31,8 @@
             <div class="row">
                 <div class="col-1">#</div>
                 <div class="col-2">CPF</div>
-                <div class="col-6">Nome</div>
+                <div class="col-2">Eleição</div>
+                <div class="col-4">Nome</div>
                 <div class="col-3 text-right">Ações</div>
             </div>
         </div>
@@ -40,8 +41,19 @@
             <div class="row">
                 <div class="col-1">{{ $usuario->id }}</div>
                 <div class="col-2">{{ $usuario->document }}</div>
-                <div class="col-6">{{ $usuario->name }}</div>
-                <div class="col-3 text-right"><button class="btn-sm @if($usuario->administrator) btn-primary @else btn-secondary @endif" onclick="f_Administrador('{{ $usuario->id }}', '@if($usuario->administrator) 0 @else 1 @endif');">A</button>&nbsp;<button class="btn-sm @if( $usuario->committee ) btn-primary @else btn-secondary @endif" onclick="f_Comissao('{{ $usuario->id }}', '@if($usuario->committee) 0 @else 1 @endif');">C</button>&nbsp;<button class="btn-sm btn-warning" onclick="f_Email('{{ $usuario->id }}');">E-MAIL/SMS</button>&nbsp;<button class="btn-sm btn-danger" onclick="f_Inativar('{{ $usuario->id }}');">EXCLUIR</button></div>
+                <div class="col-2">@if($usuario->poll){{$usuario->poll->name}}@endif</div>
+                <div class="col-4">{{ $usuario->name }}</div>
+                <div class="col-3 text-right">
+                    <button class="btn-sm @if($usuario->administrator) btn-primary @else btn-secondary @endif" onclick="f_Administrador('{{ $usuario->id }}', '@if($usuario->administrator) 0 @else 1 @endif');">A</button>
+                    <button class="btn-sm @if( $usuario->committee ) btn-primary @else btn-secondary @endif" onclick="f_Comissao('{{ $usuario->id }}', '@if($usuario->committee) 0 @else 1 @endif');">C</button>
+                    @if($usuario->poll)
+                        @if($usuario->poll->poll_type_id === 2)
+                            <button class="btn-sm @if($usuario->can_be_voted) btn-success @else btn-danger @endif">V</button>
+                        @endif
+                    @endif
+                    <button class="btn-sm btn-warning" onclick="f_Email('{{ $usuario->id }}');">NOTIF</button>
+                    <button class="btn-sm @if($usuario->able) btn-success @else btn-danger @endif" @if($usuario->able) onclick="f_Alterar('inativar', '{{ $usuario->id }}');" @else onclick="f_Alterar('ativar', '{{ $usuario->id }}');" @endif>@if($usuario->able) AT @else IN @endif</button>
+                </div>
             </div>
         </div>
         @endforeach
@@ -62,29 +74,30 @@
             </form>
         </div>
     </div>
-    <h1 class="h3 mb-3 font-weight-normal">Eleição Ativa</h1>
+    <h1 class="h3 mb-3 font-weight-normal">Eleições Ativas</h1>
     <div class="list-group">
-        @if($poll)
+        @foreach($polls as $poll)
         <div class="list-group-item list-group-item-action text-left active">
             <div class="row">
                 <div class="col-1">#</div>
+                <div class="col-3">Tipo</div>
                 <div class="col-4">Nome</div>
-                <div class="col-4">Realização</div>
-                <div class="col-3">Cadastrada em</div>
+                <div class="col-2">Realização</div>
+                <div class="col-2">Cadastrada em</div>
             </div>
         </div>
         <div class="list-group-item list-group-item-action text-left">
             <div class="row">
                 <div class="col-1">{{ $poll->id }}</div>
+                <div class="col-3">{{ $poll->polltype->name }}</div>
                 <div class="col-4">{{ $poll->name }}</div>
-                <div class="col-4">{{ $poll->start->format('d/m/Y H:i:s') . ' a ' . $poll->end->format('d/m/Y H:i:s') }}</div>
-                <div class="col-3">{{ $poll->created_at->format('d/m/Y H:i:s') }}</div>
+                <div class="col-2">{{ $poll->start->format('d/m/Y H:i') . ' a ' . $poll->end->format('d/m/Y H:i') }}</div>
+                <div class="col-2">{{ $poll->created_at->format('d/m/Y H:i') }}</div>
             </div>
         </div>
         <?php
-        $pollquestions = \App\PollQuestion::where('poll_id', $poll->id)->orderby('id', 'ASC')->get();
-        if (count($pollquestions) > 0) {
-            foreach ($pollquestions as $pollquestion) {
+        if (count($poll->pollquestions) > 0) {
+            foreach ($poll->pollquestions as $pollquestion) {
         ?>
             <div class="list-group-item list-group-item-action text-left">
                 <div class="row">
@@ -95,9 +108,8 @@
                 </div>
             </div>
         <?php
-                $pollquestionoptions = \App\PollQuestionOption::where('poll_question_id', $pollquestion->id)->orderby('id', 'ASC')->get();
-                if (count($pollquestionoptions) > 0) {
-                    foreach ($pollquestionoptions as $pollquestionoption) {
+                if (count($pollquestion->pollquestionoptions) > 0) {
+                    foreach ($pollquestion->pollquestionoptions as $pollquestionoption) {
         ?>
                 <div class="list-group-item list-group-item-action text-left">
                     <div class="row">
@@ -113,7 +125,7 @@
             }
         }
         ?>
-        @endif
+        @endforeach
         <div class="list-group-item list-group-item-action text-right">
             <form action="{{ route('uploadeleicao') }}" method="post" enctype="multipart/form-data" class="form-group" onsubmit="return f_ConfirmaEleicao();">
                 @csrf
@@ -157,7 +169,7 @@
             alert('Não foi selecionado arquivo de usuários.\nPor favor verifique.');
             return false;
         }
-        if (confirm('Ao realizar essa ação, os usuários que não estejam no arquivo importado serão excluídos. Confirma?')) {
+        if (confirm('Confirma a importação de usuários?')) {
             return true;
         }
         return false;
@@ -168,7 +180,7 @@
             alert('Não foi selecionado arquivo de eleição.\nPor favor verifique.');
             return false;
         }
-        if (confirm('Ao realizar essa ação, será criada uma nova eleição e excluída a que porventura esteja no banco de dados. Confirma?')) {
+        if (confirm('Ao realizar essa ação, será criada uma nova eleição. Confirma?')) {
             return true;
         }
         return false;
@@ -203,10 +215,12 @@
         $('form[name="frm_Acoes"]').submit();
     }
 
-    function f_Inativar(usuario) {
+    function f_Alterar(acao, usuario) {
         //ENVIAR REQUISIÇÃO
         $('input[name="user_id"]').val(usuario);
+        $('input[name="opcao"]').val(acao);
         $('form[name="frm_Acoes"]').attr('action', '{{ route('inativar') }}');
+
         $('form[name="frm_Acoes"]').submit();
     }
 </script>

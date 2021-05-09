@@ -11,9 +11,20 @@ class DatabaseSeeder extends Seeder
      */
     public function run()
     {
-        $this->call(UserSeeder::class);
+        \DB::table('poll_types')->insert(
+            [
+                'name' => 'Eleição Tradicional AFISVEC',
+            ]
+        );
+        \DB::table('poll_types')->insert(
+            [
+                'name' => 'Eleição Tipo Mesa AFISVEC (candidatos são os próprios eleitores)',
+            ]
+        );
+
 //        $this->call(PoolSeeder::class);
 //        $this->call(PoolQuestionSeeder::class);
 //        $this->call(PoolQuestionOptionSeeder::class);
+        $this->call(UserSeeder::class);
     }
 }

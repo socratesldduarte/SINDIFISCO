@@ -4,10 +4,13 @@ namespace App\Http\Controllers;
 
 use App\Mail\NovaSenhaUsuarioEmail;
 use App\Mail\UsuarioLiberadoEmail;
-use App\PollQuestion;
-use App\PollQuestionOption;
-use App\User;
-use App\UserVote;
+use App\Models\Poll;
+use App\Models\PollQuestion;
+use App\Models\PollQuestionOption;
+use App\Models\User;
+use App\Models\UserVote;
+use App\Models\UserVoteDetail;
+use App\Models\Log;
 use Illuminate\Http\Request;
 use App\Http\Requests\LoginRequest;
 use Illuminate\Support\Facades\Hash;
@@ -50,26 +53,36 @@ class VotacaoController extends Controller
         return substr(str_shuffle($senha),0,$tamanho);
     }
 
-    public function TelaInicial(Request $request) {
+    public function TelaInicial(string $codigo = null, Request $request) {
+        if (!isset($codigo) || $codigo == '') {
+            //OBTER A ÚLTIMA "MESA"
+            $poll = Poll::where('active', true)->orderby('id', 'DESC')->first();
+            if ($poll) {
+                $codigo = $poll->code;
+                return redirect(route('eleicao.codigo', ['codigo' => $codigo]));
+            } else {
+                dd('NENHUM ELEICAO DEFINIDA');
+            }
+        }
         session(['administrator' => '']);
         session(['committee' => '']);
         session(['user_id' => '']);
         session(['poll_id' => '']);
         session(['ip' => $request->ip()]);
         //LOG
-        \App\Log::create([
+        Log::create([
             'ip' => session('ip'),
             'code' => 'INFO',
-            'description' => 'Acesso à tela de login',
+            'description' => 'Acesso à tela de login - ' . $codigo,
         ]);
-        //VOTACAO
-        $poll = \App\Poll::where('active', true)->orderby('id', 'DESC')->first();
+        $poll = Poll::where('code', $codigo)->first();
         if ($poll) {
             session(['poll_id' => $poll->id]);
         } else {
             session(['poll_id' => '0']);
         }
-        return view('welcome');
+        //VOTACAO
+        return view('welcome', compact('poll'));
     }
 
     public function TelaInicialAdm(Request $request) {
@@ -79,7 +92,7 @@ class VotacaoController extends Controller
         session(['poll_id' => '']);
         session(['ip' => $request->ip()]);
         //LOG
-        \App\Log::create([
+        Log::create([
             'ip' => session('ip'),
             'code' => 'INFO',
             'description' => 'Acesso à tela de login de administrador',
@@ -94,7 +107,7 @@ class VotacaoController extends Controller
         session(['poll_id' => '']);
         session(['ip' => $request->ip()]);
         //LOG
-        \App\Log::create([
+        Log::create([
             'ip' => session('ip'),
             'code' => 'INFO',
             'description' => 'Acesso à tela de login de comissão',
@@ -104,7 +117,7 @@ class VotacaoController extends Controller
 
     public function Login(LoginRequest $request) {
         //LOG
-        \App\Log::create([
+        Log::create([
             'ip' => session('ip'),
             'code' => 'INFO',
             'description' => 'Tentativa de  login (' . $request->cpf . ')',
@@ -114,23 +127,26 @@ class VotacaoController extends Controller
         session(['committee' => '']);
         session(['user_id' => '']);
         session(['ip' => $request->ip()]);
-        $usuario = \App\User::where('document', $request->cpf)
-            ->first();
+        $usuario = User::where('document', $request->cpf);
+        if (session('poll_id') != 0) {
+            $usuario = $usuario->where('poll_id', session('poll_id'));
+        }
+        $usuario = $usuario->first();
         if(empty($usuario)) {
             //LOG
-            \App\Log::create([
+            Log::create([
                 'ip' => session('ip'),
                 'code' => 'ERRO',
                 'description' => 'Erro na tentativa de login (CPF não encontrado): ' . $request->cpf,
             ]);
             //LOGIN INVÁLIDO
-            flash('Dados de login incorretos!')->error();
-            return redirect()->route('/');
+            flash('Dados de login incorretos ou Eleição não selecionada!')->error();
+            return redirect(request()->headers->get('referer'))->with('error', 'login incorreto ou eleição não selecionada');
         }
         //VERIFICAR SE USUÁRIO ESTÁ LIBERADO
         if (now() < $usuario->enabled_until) {
             //LOG
-            \App\Log::create([
+            Log::create([
                 'ip' => session('ip'),
                 'code' => 'INFO',
                 'description' => 'Usuário liberado por 5 minutos: ' . $request->cpf,
@@ -139,33 +155,33 @@ class VotacaoController extends Controller
             //VERIFICANDO SE A SENHA ESTÁ CORRETA
             if (!Hash::check($request->senha, $usuario->password, [])) {
                 //LOG
-                \App\Log::create([
+                Log::create([
                     'ip' => session('ip'),
                     'code' => 'ERRO',
                     'description' => 'Erro na tentativa de login (Senha Incorreta): ' . $request->cpf,
                 ]);
                 //SENHA INCORRETA
                 flash('Dados de login incorretos!!!')->error();
-                return redirect()->route('/');
+                return redirect(request()->headers->get('referer'))->with('error', 'login incorreto');
             }
         }
         //VERIFICANDO SE USUÁRIO ESTÁ APTO
         if (!$usuario->able) {
             //LOG
-            \App\Log::create([
+            Log::create([
                 'ip' => session('ip'),
                 'code' => 'ERRO',
                 'description' => 'Erro na tentativa de login (Usuário não está apto): ' . $request->cpf,
             ]);
             //USUÁRIO NÃO APTO
             flash('Usuário não está apto!')->error();
-            return redirect()->route('/');
+            return redirect(request()->headers->get('referer'))->with('error', 'login incorreto');
         }
         //VERIFICAR SE USUÁRIO JÁ VOTOU
-        $uservote = \App\UserVote::where('poll_id', session('poll_id'))->where('user_id', $usuario->id)->first();
+        $uservote = UserVote::where('poll_id', session('poll_id'))->where('user_id', $usuario->id)->first();
         if ($uservote) {
             //LOG
-            \App\Log::create([
+            Log::create([
                 'ip' => session('ip'),
                 'code' => 'ERRO',
                 'description' => 'Erro na tentativa de login (Usuário já votou): ' . $request->cpf,
@@ -175,7 +191,7 @@ class VotacaoController extends Controller
         }
         session(['user_id' => $usuario->id]);
         //LOG
-        \App\Log::create([
+        Log::create([
             'user_id' => session('user_id'),
             'code' => 'LOGIN',
             'ip' => session('ip'),
@@ -184,10 +200,10 @@ class VotacaoController extends Controller
         //CRIAR SESSAO E ENVIAR PARA A TELA DE VOTAÇÃO
         session(['votacao_user_id' => $usuario->id]);
         session(['inicia_votacao' => true]);
-        $poll = \App\Poll::where('id', session('poll_id'))->where('active', true)->first();
+        $poll = Poll::where('id', session('poll_id'))->where('active', true)->first();
         if (empty($poll)) {
             //LOG
-            \App\Log::create([
+            Log::create([
                 'user_id' => session('user_id'),
                 'code' => 'ERRO',
                 'ip' => session('ip'),
@@ -195,11 +211,11 @@ class VotacaoController extends Controller
             ]);
             //NÃO HÁ VOTAÇÃO ABERTA
             flash('Votação incorreta!')->error();
-            return redirect()->route('/');
+            return redirect(request()->headers->get('referer'))->with('error', 'votação incorreta');
         }
         if ($poll->start > now()) {
             //LOG
-            \App\Log::create([
+            Log::create([
                 'user_id' => session('user_id'),
                 'code' => 'ERRO',
                 'ip' => session('ip'),
@@ -207,11 +223,11 @@ class VotacaoController extends Controller
             ]);
             //VOTAÇÃO NÃO COMEÇOU
             flash('Votação ainda não foi iniciada!')->error();
-            return redirect()->route('/');
+            return redirect(request()->headers->get('referer'))->with('error', 'votação não iniciada');
         }
         if ($poll->end < now()) {
             //LOG
-            \App\Log::create([
+            Log::create([
                 'user_id' => session('user_id'),
                 'code' => 'ERRO',
                 'ip' => session('ip'),
@@ -219,15 +235,14 @@ class VotacaoController extends Controller
             ]);
             //VOTAÇÃO JÁ ENCERROU
             flash('Votação já foi encerrada!')->error();
-            return redirect()->route('/');
+            return redirect(request()->headers->get('referer'))->with('error', 'votação encerrada');
         }
-        $pollquestions = \App\PollQuestion::where('poll_id', $poll->id)->orderby('id')->get();
         return redirect(route('votacao'));
     }
 
     public function LoginAdm(LoginRequest $request) {
         //LOG
-        \App\Log::create([
+        Log::create([
             'ip' => session('ip'),
             'code' => 'INFO',
             'description' => 'Tentativa de  login de administrador (' . $request->cpf . ')',
@@ -237,11 +252,11 @@ class VotacaoController extends Controller
         session(['committee' => '']);
         session(['user_id' => '']);
         session(['ip' => $request->ip()]);
-        $usuario = \App\User::where('document', $request->cpf)
+        $usuario = User::where('document', $request->cpf)
             ->first();
         if(empty($usuario)) {
             //LOG
-            \App\Log::create([
+            Log::create([
                 'ip' => session('ip'),
                 'code' => 'ERRO',
                 'description' => 'Erro na tentativa de login de administrador (CPF não encontrado): ' . $request->cpf,
@@ -253,7 +268,7 @@ class VotacaoController extends Controller
         //VERIFICANDO SE A SENHA ESTÁ CORRETA
         if (!Hash::check($request->senha, $usuario->password, [])) {
             //LOG
-            \App\Log::create([
+            Log::create([
                 'ip' => session('ip'),
                 'code' => 'ERRO',
                 'description' => 'Erro na tentativa de login de administrador (Senha Incorreta): ' . $request->cpf,
@@ -265,7 +280,7 @@ class VotacaoController extends Controller
         //VERIFICANDO SE USUÁRIO ESTÁ APTO
         if (!$usuario->able) {
             //LOG
-            \App\Log::create([
+            Log::create([
                 'ip' => session('ip'),
                 'code' => 'ERRO',
                 'description' => 'Erro na tentativa de login de administrador (Usuário não está apto): ' . $request->cpf,
@@ -279,7 +294,7 @@ class VotacaoController extends Controller
             session(['administrator' => $usuario->id]);
             session(['user_id' => $usuario->id]);
             //LOG
-            \App\Log::create([
+            Log::create([
                 'user_id' => session('user_id'),
                 'code' => 'LOGIN ADM',
                 'ip' => session('ip'),
@@ -294,7 +309,7 @@ class VotacaoController extends Controller
 
     public function LoginCom(LoginRequest $request) {
         //LOG
-        \App\Log::create([
+        Log::create([
             'ip' => session('ip'),
             'code' => 'INFO',
             'description' => 'Tentativa de  login de comissão (' . $request->cpf . ')',
@@ -304,11 +319,11 @@ class VotacaoController extends Controller
         session(['committee' => '']);
         session(['user_id' => '']);
         session(['ip' => $request->ip()]);
-        $usuario = \App\User::where('document', $request->cpf)
+        $usuario = User::where('document', $request->cpf)
             ->first();
         if(empty($usuario)) {
             //LOG
-            \App\Log::create([
+            Log::create([
                 'ip' => session('ip'),
                 'code' => 'ERRO',
                 'description' => 'Erro na tentativa de login de comissão (CPF não encontrado): ' . $request->cpf,
@@ -320,7 +335,7 @@ class VotacaoController extends Controller
         //VERIFICANDO SE A SENHA ESTÁ CORRETA
         if (!Hash::check($request->senha, $usuario->password, [])) {
             //LOG
-            \App\Log::create([
+            Log::create([
                 'ip' => session('ip'),
                 'code' => 'ERRO',
                 'description' => 'Erro na tentativa de login (Senha Incorreta): ' . $request->cpf,
@@ -332,7 +347,7 @@ class VotacaoController extends Controller
         //VERIFICANDO SE USUÁRIO ESTÁ APTO
         if (!$usuario->able) {
             //LOG
-            \App\Log::create([
+            Log::create([
                 'ip' => session('ip'),
                 'code' => 'ERRO',
                 'description' => 'Erro na tentativa de login (Usuário não está apto): ' . $request->cpf,
@@ -346,7 +361,7 @@ class VotacaoController extends Controller
             session(['committee' => $usuario->id]);
             session(['user_id' => $usuario->id]);
             //LOG
-            \App\Log::create([
+            Log::create([
                 'user_id' => session('user_id'),
                 'code' => 'LOGIN COM',
                 'ip' => session('ip'),
@@ -365,38 +380,39 @@ class VotacaoController extends Controller
         if (!session('inicia_votacao')) {
             //ACESSO INCORRETO
             flash('Acesso incorreto!')->error();
-            return redirect()->route('/');
+            return redirect(request()->headers->get('referer'))->with('error', 'Votação incorreta');
         }
         if (session('votacao_user_id') == '') {
             flash('Sessão expirada!')->error();
-            return redirect()->route('/');
+            return redirect(request()->headers->get('referer'))->with('error', 'Votação incorreta');
         }
         session(['inicia_votacao' => false]);
-        $poll = \App\Poll::where('id', session('poll_id'))->where('active', true)->first();
+        $poll = Poll::where('id', session('poll_id'))->where('active', true)->first();
         if (empty($poll)) {
             //NÃO HÁ VOTAÇÃO ABERTA
             flash('Votação incorreta!')->error();
-            return redirect()->route('/');
+            return redirect(request()->headers->get('referer'))->with('error', 'Votação incorreta');
         }
         if ($poll->start > now()) {
             //VOTAÇÃO NÃO COMEÇOU
             flash('Votação ainda não foi iniciada!')->error();
-            return redirect()->route('/');
+            return redirect(request()->headers->get('referer'))->with('error', 'Votação incorreta');
         }
         if ($poll->end < now()) {
             //VOTAÇÃO JÁ ENCERROU
             flash('Votação já foi encerrada!')->error();
-            return redirect()->route('/');
+            return redirect(request()->headers->get('referer'))->with('error', 'Votação incorreta');
         }
         //LOG
-        \App\Log::create([
+        Log::create([
             'user_id' => session('user_id'),
             'code' => 'INFO',
             'ip' => session('ip'),
             'description' => 'Acesso à tela de votação',
         ]);
-        $pollquestions = \App\PollQuestion::where('poll_id', $poll->id)->orderby('id')->get();
-        return view('votacao', compact('poll', 'pollquestions'));
+        $user = User::find(session('votacao_user_id'));
+        $pollquestions = PollQuestion::where('poll_id', $poll->id)->orderby('id')->get();
+        return view('votacao', compact('poll', 'user'));
     }
 
     public function administrador()
@@ -412,15 +428,15 @@ class VotacaoController extends Controller
             return redirect()->route('inicio-adm');
         }
         //LOG
-        \App\Log::create([
+        Log::create([
             'user_id' => session('user_id'),
             'code' => 'INFO',
             'ip' => session('ip'),
             'description' => 'Acesso à área administrativa',
         ]);
-        $usuarios = \App\User::where('able', true)->paginate(20);
-        $poll = \App\Poll::where('active', true)->orderby('id', 'DESC')->first();
-        return view('administrador', compact('usuarios', 'poll'));
+        $usuarios = User::orderby('poll_id', 'ASC')->paginate(20);
+        $polls = Poll::with('pollquestions')->where('active', true)->get();
+        return view('administrador', compact('usuarios', 'polls'));
     }
 
     public function comissao()
@@ -436,14 +452,14 @@ class VotacaoController extends Controller
             return redirect()->route('inicio-com');
         }
         //LOG
-        \App\Log::create([
+        Log::create([
             'user_id' => session('user_id'),
             'code' => 'INFO',
             'ip' => session('ip'),
             'description' => 'Acesso à área da comissão',
         ]);
-        $usuarios = \App\User::where('able', true)->paginate(20);
-        $poll = \App\Poll::where('active', true)->orderby('id', 'DESC')->first();
+        $usuarios = User::where('able', true)->paginate(20);
+        $poll = Poll::where('active', true)->orderby('id', 'DESC')->first();
         return view('comissao', compact('usuarios', 'poll'));
     }
 
@@ -456,7 +472,7 @@ class VotacaoController extends Controller
     public function ComLocked()
     {
         //LOG
-        \App\Log::create([
+        Log::create([
             'user_id' => session('user_id'),
             'code' => 'INFO',
             'ip' => session('ip'),
@@ -469,7 +485,7 @@ class VotacaoController extends Controller
     public function AdmLocked()
     {
         //LOG
-        \App\Log::create([
+        Log::create([
             'user_id' => session('user_id'),
             'code' => 'INFO',
             'ip' => session('ip'),
@@ -482,7 +498,7 @@ class VotacaoController extends Controller
     public function VotacaoLocked()
     {
         //LOG
-        \App\Log::create([
+        Log::create([
             'user_id' => session('user_id'),
             'code' => 'INFO',
             'ip' => session('ip'),
@@ -495,7 +511,7 @@ class VotacaoController extends Controller
     public function Registro(Request $request)
     {
         //LOG
-        \App\Log::create([
+        Log::create([
             'user_id' => session('user_id'),
             'code' => 'INFO',
             'ip' => session('ip'),
@@ -506,17 +522,17 @@ class VotacaoController extends Controller
         try {
             //CRIAR O VOTO
             $voto = md5(uniqid(rand(), true));
-            \App\UserVote::create([
+            UserVote::create([
                 'poll_id' =>  session('poll_id'),
                 'user_id' =>  session('votacao_user_id'),
                 'ip' => session('ip'),
                 'vote' => $voto,
             ]);
             //PERCORRER ELEICAO
-            $questions = \App\PollQuestion::where('poll_id', session('poll_id'))->get();
+            $questions = PollQuestion::where('poll_id', session('poll_id'))->get();
             foreach ($questions as $question) {
                 $poll_question_id = $question->id;
-                $votobranco = \App\PollQuestionOption::where('poll_question_id', $poll_question_id)->where('order', 0)->first()->id;
+                $votobranco = PollQuestionOption::where('poll_question_id', $poll_question_id)->where('order', 0)->first()->id;
                 $selecao = $question->selection_number;
                 $contador = 0;
                 if ($question->selection_number == 1) {
@@ -525,7 +541,7 @@ class VotacaoController extends Controller
                     } else {
                         $poll_question_option_id = $_POST["questao_" . $poll_question_id];
                     }
-                    \App\UserVoteDetail::create([
+                    UserVoteDetail::create([
                         'vote' => $voto,
                         'poll_id' => session('poll_id'),
                         'question' => $poll_question_id,
@@ -537,7 +553,7 @@ class VotacaoController extends Controller
                         foreach ($_POST["questao_" . $poll_question_id] as $questao) {
                             $poll_question_option_id = $questao;
                             $contador += 1;
-                            \App\UserVoteDetail::create([
+                            UserVoteDetail::create([
                                 'vote' => $voto,
                                 'poll_id' => session('poll_id'),
                                 'question' => $poll_question_id,
@@ -547,7 +563,7 @@ class VotacaoController extends Controller
                     }
                     //VERIFICANDO SE TEM VOTOS EM BRANCO
                     for ($i = $contador; $i < $selecao; $i++) {
-                        \App\UserVoteDetail::create([
+                        UserVoteDetail::create([
                             'vote' => $voto,
                             'poll_id' => session('poll_id'),
                             'question' => $poll_question_id,
@@ -557,7 +573,7 @@ class VotacaoController extends Controller
                 }
             }
             //LOG
-            \App\Log::create([
+            Log::create([
                 'user_id' => session('user_id'),
                 'code' => 'REGISTRO',
                 'ip' => session('ip'),
@@ -567,7 +583,7 @@ class VotacaoController extends Controller
             return redirect(route('votoregistrado'));
         } catch (Exception $e) {
             //LOG
-            \App\Log::create([
+            Log::create([
                 'user_id' => session('user_id'),
                 'code' => 'ERRO VOT',
                 'ip' => session('ip'),
@@ -599,20 +615,18 @@ class VotacaoController extends Controller
         $qtdeerros = 0;
         $qtdeLinhas = 0;
         $Log = '';
-        //TORNAR TODOS USUÁRIOS ATUAIS (EXCETO o 999) "INAPTOS":
         //LOG
-        \App\Log::create([
+        Log::create([
             'user_id' => session('user_id'),
             'code' => 'UPLOAD',
             'ip' => session('ip'),
             'description' => 'Iniciando processo de upload de usuários',
         ]);
         DB::connection('mysql')->beginTransaction();
-        $user = \App\User::where('document', '<>', '99999999999')->where('able', true)->update(['able' => false]);
         while(!feof($fileAberto)) {
             $linha = trim(fgets($fileAberto));
             //LOG
-            \App\Log::create([
+            Log::create([
                 'user_id' => session('user_id'),
                 'code' => 'UPLOAD',
                 'ip' => session('ip'),
@@ -625,10 +639,10 @@ class VotacaoController extends Controller
 
                 $linhaarray = explode(';', $linha);
 
-                if (count($linhaarray) != 4 ) {
+                if (count($linhaarray) != 8 ) {
                     $Log = $Log . 'Erro ao processar registro. Linha: ' . $linha . '<br>';
                     //LOG
-                    \App\Log::create([
+                    Log::create([
                         'user_id' => session('user_id'),
                         'code' => 'ERRO',
                         'ip' => session('ip'),
@@ -636,26 +650,33 @@ class VotacaoController extends Controller
                     ]);
                     break;
                 }
-                $nome = $linhaarray[0];
+                $nome = $linhaarray[4];
                 if ($nome != '') {
-                    $cpf = $linhaarray[1];
-                    $email = $linhaarray[2];
+                    $cpf = $linhaarray[5];
+                    $email = $linhaarray[6];
                     if ($email == '') {
                         $email = ' ';
                     }
-                    $celular = $linhaarray[3];
+                    $celular = $linhaarray[7];
                     $celular = str_replace(['-', '(', ')', '+'], ['', '', '', ''], $celular);
                     if ($celular == '') {
                         $celular = ' ';
                     }
                     $apto = true;
-                    $administrador = false;
-                    $comissao = false;
+                    $mesa = $linhaarray[0];
+                    $poll = Poll::where('code', $mesa)->first();
+                    $linhaarray[1] == '1' ? $administrador = true : $administrador = false;
+                    $linhaarray[2] == '1' ? $comissao = true : $comissao = false;
+                    $linhaarray[3] == '1' ? $can_be_voted = true : $can_be_voted = false;
                     //VERIFICAR SE JÁ EXISTE ESSE CPF NO BANCO DE DADOS
-                    $user = \App\User::where('document', $cpf)->first();
+                    $user = User::where('document', $cpf);
+                    if ($poll) {
+                        $user = $user->where('poll_id', $poll->id);
+                    }
+                    $user = $user->first();
                     if (!empty($user)) {
                         try {
-                            //EXISTE USUÁRIO, ATUALIZAR
+                            //EXISTE USUÁRIO NA MESA, ATUALIZAR
                             $senha = $this->gerar_senha(10, false, true, true, false);
                             $user->able = $apto;
                             $user->name = $nome;
@@ -663,21 +684,22 @@ class VotacaoController extends Controller
                             $user->mobile = $celular;
                             $user->administrator = $administrador;
                             $user->committee = $comissao;
+                            $user->can_be_voted = $can_be_voted;
                             $user->password = bcrypt($senha);
                             $user->save();
                             $Log = $Log . 'Atualizado usuário: ' . $cpf . ' - ' . $nome . ', senha: ' . $senha . '<br>';
                             //LOG
-                            \App\Log::create([
+                            Log::create([
                                 'user_id' => session('user_id'),
                                 'code' => 'UPLOAD',
                                 'ip' => session('ip'),
-                                'description' => 'Atualizado usuário: ' . $cpf . ' - ' . $nome . ', senha: ' . $senha,
+                                'description' => 'Atualizado na mesa ' . $mesa . ' o usuário: ' . $cpf . ' - ' . $nome . ', senha: ' . $senha,
                             ]);
                             Mail::to($email)->send(new ImportacaoUsuarioEmail($user, $senha));
                             // Envio do SMS
                             $celular = trim($celular);
                             $celular = str_replace(['(', ')', '-'], ['', '', ''], $celular);
-                            if (strlen($celular) == 11) {
+                            if (strlen($celular) == 20) {
                                 $mensagem = urlencode("ELEICAO AFISVEC - sua senha de acesso e: " . $senha);
                                 // concatena a url da api com a variável carregando o conteúdo da mensagem
                                 $url_api = "https://www.iagentesms.com.br/webservices/http.php?metodo=envio&usuario=Afisvec&senha=Rapunzel5&celular=" . $celular . "&mensagem={$mensagem}";
@@ -686,7 +708,7 @@ class VotacaoController extends Controller
                                 // imprime o resultado da requisição
                                 if ($api_http != 'OK') {
                                     //LOG
-                                    \App\Log::create([
+                                    Log::create([
                                         'user_id' => session('user_id'),
                                         'code' => 'SMS UPLOAD',
                                         'ip' => session('ip'),
@@ -694,7 +716,7 @@ class VotacaoController extends Controller
                                     ]);
                                 } else {
                                     //LOG
-                                    \App\Log::create([
+                                    Log::create([
                                         'user_id' => session('user_id'),
                                         'code' => 'SMS UPLOAD',
                                         'ip' => session('ip'),
@@ -704,7 +726,7 @@ class VotacaoController extends Controller
                             }
                         } catch (\Exception $e) {
                             //LOG
-                            \App\Log::create([
+                            Log::create([
                                 'user_id' => session('user_id'),
                                 'code' => 'ERRO',
                                 'ip' => session('ip'),
@@ -715,7 +737,8 @@ class VotacaoController extends Controller
                         try {
                             //NÃO EXISTE, CRIAR
                             $senha = $this->gerar_senha(10, false, true, true, false);
-                            \App\User::create([
+                            $user = User::create([
+                                'poll_id' => $poll ? $poll->id : null,
                                 'document' => $cpf,
                                 'able' => $apto,
                                 'name' => $nome,
@@ -723,12 +746,12 @@ class VotacaoController extends Controller
                                 'mobile' => $celular,
                                 'administrator' => $administrador,
                                 'committee' => $comissao,
+                                'can_be_voted' => $can_be_voted,
                                 'password' => bcrypt($senha),
                             ]);
-                            $user = \App\User::where('document', $cpf)->first();
                             $Log = $Log . 'Criado usuário: ' . $cpf . ' - ' . $nome . ', senha: ' . $senha . '<br>';
                             //LOG
-                            \App\Log::create([
+                            Log::create([
                                 'user_id' => session('user_id'),
                                 'code' => 'UPLOAD',
                                 'ip' => session('ip'),
@@ -738,7 +761,7 @@ class VotacaoController extends Controller
                             // Envio do SMS
                             $celular = trim($celular);
                             $celular = str_replace(['(', ')', '-'], ['', '', ''], $celular);
-                            if (strlen($celular) == 11) {
+                            if (strlen($celular) == 20) {
                                 $mensagem = urlencode("ELEICAO AFISVEC - sua senha de acesso e: " . $senha);
                                 // concatena a url da api com a variável carregando o conteúdo da mensagem
                                 $url_api = "https://www.iagentesms.com.br/webservices/http.php?metodo=envio&usuario=Afisvec&senha=Rapunzel5&celular=" . $celular . "&mensagem={$mensagem}";
@@ -747,7 +770,7 @@ class VotacaoController extends Controller
                                 // imprime o resultado da requisição
                                 if ($api_http != 'OK') {
                                     //LOG
-                                    \App\Log::create([
+                                    Log::create([
                                         'user_id' => session('user_id'),
                                         'code' => 'SMS UPLOAD',
                                         'ip' => session('ip'),
@@ -755,7 +778,7 @@ class VotacaoController extends Controller
                                     ]);
                                 } else {
                                     //LOG
-                                    \App\Log::create([
+                                    Log::create([
                                         'user_id' => session('user_id'),
                                         'code' => 'SMS UPLOAD',
                                         'ip' => session('ip'),
@@ -765,7 +788,7 @@ class VotacaoController extends Controller
                             }
                         } catch (Exception $e) {
                             //LOG
-                            \App\Log::create([
+                            Log::create([
                                 'user_id' => session('user_id'),
                                 'code' => 'ERRO',
                                 'ip' => session('ip'),
@@ -773,12 +796,41 @@ class VotacaoController extends Controller
                             ]);
                         }
                     }
+                    if ($can_be_voted && $poll) {
+                        if ($poll->poll_type_id == 2) {
+                            //ADICIONAR O USUÁRIO COMO CANDIDATO
+                            $pollquestion = $poll->pollquestions()->first();
+                            if ($pollquestion) {
+                                $option = $pollquestion->pollquestionoptions()->where('description', $nome)->first();
+                                if (!$option) {
+                                    //CREATE
+                                    $lastoption = $pollquestion->pollquestionoptions()
+                                        ->where('order', '<>', '0')
+                                        ->where('order', '<>', '999')
+                                        ->orderby('order', 'DESC')
+                                        ->first();
+                                    $order = 1;
+                                    if ($lastoption) {
+                                        $order = (int)$lastoption->order + 1;
+                                    }
+                                    $candidato = $pollquestion->pollquestionoptions()->create(
+                                        [
+                                            'poll_question_id' => $pollquestion->id,
+                                            'order' => $order,
+                                            'option' => $order,
+                                            'description' => $nome,
+                                        ]
+                                    );
+                                }
+                            }
+                        }
+                    }
                 }
             }
         }
         DB::connection('mysql')->commit();
         //LOG
-        \App\Log::create([
+        Log::create([
             'user_id' => session('user_id'),
             'code' => 'UPLOAD',
             'ip' => session('ip'),
@@ -810,7 +862,7 @@ class VotacaoController extends Controller
         $Log = '';
         //TORNAR TODAS ELEICOES ATUAIS "INATIVAS":
         //LOG
-        \App\Log::create([
+        Log::create([
             'user_id' => session('user_id'),
             'code' => 'UPLOAD',
             'ip' => session('ip'),
@@ -818,7 +870,7 @@ class VotacaoController extends Controller
         ]);
         //Inicia o Database Transaction
         DB::connection('mysql')->beginTransaction();
-        $eleicao = \App\Poll::where('active', true)->update(['active' => false]);
+        $eleicao = Poll::where('active', true)->update(['active' => false]);
         $poll_id = 0;
         $poll_question_id = 0;
         while(!feof($fileAberto)) {
@@ -835,10 +887,10 @@ class VotacaoController extends Controller
                             $Log = $Log . 'Inserção de registro (POLL). Linha: ' . $linha . '<br>';
                             $poll_id = 0;
                             //NOVA PESQUISA
-                            if (count($linhaarray) != 4 ) {
+                            if (count($linhaarray) != 6 ) {
                                 $Log = $Log . 'Erro ao processar registro (POLL). Linha: ' . $linha . '<br>';
                                 //LOG
-                                \App\Log::create([
+                                Log::create([
                                     'user_id' => session('user_id'),
                                     'code' => 'ERRO',
                                     'ip' => session('ip'),
@@ -846,25 +898,26 @@ class VotacaoController extends Controller
                                 ]);
                                 break;
                             };
-                            $poll = \App\Poll::create([
-                                    'name' => $linhaarray[1],
-                                    'start' => $linhaarray[2],
-                                    'end' => $linhaarray[3],
+                            $poll = Poll::create([
+                                    'poll_type_id' => $linhaarray[1],
+                                    'code' => $linhaarray[2],
+                                    'name' => $linhaarray[3],
+                                    'start' => $linhaarray[4],
+                                    'end' => $linhaarray[5],
                                     'active' => true
                                 ]);
-                            $poll = \App\Poll::where('active', true)->orderby('id', 'DESC')->first();
                             $poll_id = $poll->id;
                             //LOG
-                            \App\Log::create([
+                            Log::create([
                                 'user_id' => session('user_id'),
                                 'code' => 'UPLOAD',
                                 'ip' => session('ip'),
-                                'description' => 'Inserção de registro (POLL): ' . $poll_id . ' / ' . $linhaarray[1],
+                                'description' => 'Inserção de registro (POLL): ' . $poll_id . ' / ' . $linhaarray[2],
                             ]);
                             break;
                         } catch (\Exception $e) {
                             //LOG
-                            \App\Log::create([
+                            Log::create([
                                 'user_id' => session('user_id'),
                                 'code' => 'ERRO',
                                 'ip' => session('ip'),
@@ -880,7 +933,7 @@ class VotacaoController extends Controller
                             if (count($linhaarray) != 4 ) {
                                 $Log = $Log . 'Erro ao processar registro (QUESTION). Formato incorreto - linha: ' . $linha . '<br>';
                                 //LOG
-                                \App\Log::create([
+                                Log::create([
                                     'user_id' => session('user_id'),
                                     'code' => 'ERRO',
                                     'ip' => session('ip'),
@@ -891,7 +944,7 @@ class VotacaoController extends Controller
                             if ($poll_id == 0) {
                                 $Log = $Log . 'Erro ao processar registro (QUESTION) - Poll inválido. Linha: ' . $linha . '<br>';
                                 //LOG
-                                \App\Log::create([
+                                Log::create([
                                     'user_id' => session('user_id'),
                                     'code' => 'ERRO',
                                     'ip' => session('ip'),
@@ -899,30 +952,30 @@ class VotacaoController extends Controller
                                 ]);
                                 break;
                             }
-                            $pollquestion = \App\PollQuestion::create([
+                            $pollquestion = PollQuestion::create([
                                     'poll_id' => $poll_id,
                                     'question' => $linhaarray[1],
                                     'description' => $linhaarray[2],
                                     'selection_number' => $linhaarray[3]
                                 ]);
-                            $pollquestion = \App\PollQuestion::where('poll_id', $poll_id)->orderby('id', 'DESC')->first();
+                            $pollquestion = PollQuestion::where('poll_id', $poll_id)->orderby('id', 'DESC')->first();
                             $poll_question_id = $pollquestion->id;
                             //INSERIR OPCAO "B"
-                            $pollquestionoption = \App\PollQuestionOption::create([
+                            $pollquestionoption = PollQuestionOption::create([
                                 'poll_question_id' => $poll_question_id,
                                 'order' => 0,
                                 'option' => 'B',
                                 'description' => 'Voto em Branco'
                             ]);
                             //INSERIR OPCAO "N"
-                            $pollquestionoption = \App\PollQuestionOption::create([
+                            $pollquestionoption = PollQuestionOption::create([
                                 'poll_question_id' => $poll_question_id,
                                 'order' => 999,
                                 'option' => 'N',
                                 'description' => 'Anular'
                             ]);
                             //LOG
-                            \App\Log::create([
+                            Log::create([
                                 'user_id' => session('user_id'),
                                 'code' => 'UPLOAD',
                                 'ip' => session('ip'),
@@ -931,7 +984,7 @@ class VotacaoController extends Controller
                             break;
                         } catch (\Exception $e) {
                             //LOG
-                            \App\Log::create([
+                            Log::create([
                                 'user_id' => session('user_id'),
                                 'code' => 'ERRO',
                                 'ip' => session('ip'),
@@ -947,7 +1000,7 @@ class VotacaoController extends Controller
                             if (count($linhaarray) != 4 ) {
                                 $Log = $Log . 'Erro ao processar registro (OPTION). Linha: ' . $linha . '<br>';
                                 //LOG
-                                \App\Log::create([
+                                Log::create([
                                     'user_id' => session('user_id'),
                                     'code' => 'ERRO',
                                     'ip' => session('ip'),
@@ -958,7 +1011,7 @@ class VotacaoController extends Controller
                             if ($poll_question_id == 0) {
                                 $Log = $Log . 'Erro ao processar registro (OPTION) - Question inválido. Linha: ' . $linha . '<br>';
                                 //LOG
-                                \App\Log::create([
+                                Log::create([
                                     'user_id' => session('user_id'),
                                     'code' => 'ERRO',
                                     'ip' => session('ip'),
@@ -966,16 +1019,16 @@ class VotacaoController extends Controller
                                 ]);
                                 break;
                             }
-                            $pollquestionoption = \App\PollQuestionOption::create([
+                            $pollquestionoption = PollQuestionOption::create([
                                     'poll_question_id' => $poll_question_id,
                                     'order' => $linhaarray[1],
                                     'option' => $linhaarray[2],
                                     'description' => $linhaarray[3]
                                 ]);
-                            $pollquestionoption = \App\PollQuestionOption::where('poll_question_id', $poll_question_id)->orderby('id', 'DESC')->first();
+                            $pollquestionoption = PollQuestionOption::where('poll_question_id', $poll_question_id)->orderby('id', 'DESC')->first();
                             $poll_question_option_id = $pollquestionoption->id;
                             //LOG
-                            \App\Log::create([
+                            Log::create([
                                 'user_id' => session('user_id'),
                                 'code' => 'UPLOAD',
                                 'ip' => session('ip'),
@@ -984,7 +1037,7 @@ class VotacaoController extends Controller
                             break;
                         } catch (\Exception $e) {
                             //LOG
-                            \App\Log::create([
+                            Log::create([
                                 'user_id' => session('user_id'),
                                 'code' => 'ERRO',
                                 'ip' => session('ip'),
@@ -995,7 +1048,7 @@ class VotacaoController extends Controller
                     default:
                         $Log = $Log . 'Erro ao processar registro - linha com identificador inválido. Linha: ' . $linha . '<br>';
                         //LOG
-                        \App\Log::create([
+                        Log::create([
                             'user_id' => session('user_id'),
                             'code' => 'ERRO',
                             'ip' => session('ip'),
@@ -1007,7 +1060,7 @@ class VotacaoController extends Controller
         }
         DB::connection('mysql')->commit();
         //LOG
-        \App\Log::create([
+        Log::create([
             'user_id' => session('user_id'),
             'code' => 'UPLOAD',
             'ip' => session('ip'),
@@ -1022,7 +1075,7 @@ class VotacaoController extends Controller
             //TORNAR ADMINISTRADOR
             $opcao = true;
             //LOG
-            \App\Log::create([
+            Log::create([
                 'user_id' => session('user_id'),
                 'code' => 'FLAG ADM',
                 'ip' => session('ip'),
@@ -1032,7 +1085,7 @@ class VotacaoController extends Controller
             //REMOVER ADMINISTRADOR
             $opcao = false;
             //LOG
-            \App\Log::create([
+            Log::create([
                 'user_id' => session('user_id'),
                 'code' => 'FLAG ADM',
                 'ip' => session('ip'),
@@ -1040,12 +1093,12 @@ class VotacaoController extends Controller
             ]);
         }
         try {
-            $user = \App\User::where('id', $request->user_id);
+            $user = User::where('id', $request->user_id);
             $user->update(array('administrator' => $opcao));
             flash('Flag de comissão administrador para o usuário: ' . $request->user_id . '!')->success();
         } catch(\Exception $e) {
             //LOG
-            \App\Log::create([
+            Log::create([
                 'user_id' => session('user_id'),
                 'code' => 'ERRO',
                 'ip' => session('ip'),
@@ -1062,7 +1115,7 @@ class VotacaoController extends Controller
             //TORNAR COMISSAO
             $opcao = true;
             //LOG
-            \App\Log::create([
+            Log::create([
                 'user_id' => session('user_id'),
                 'code' => 'FLAG COM',
                 'ip' => session('ip'),
@@ -1072,7 +1125,7 @@ class VotacaoController extends Controller
             //REMOVER COMISSAO
             $opcao = false;
             //LOG
-            \App\Log::create([
+            Log::create([
                 'user_id' => session('user_id'),
                 'code' => 'FLAG COM',
                 'ip' => session('ip'),
@@ -1080,12 +1133,12 @@ class VotacaoController extends Controller
             ]);
         }
         try {
-            $user = \App\User::where('id', $request->user_id);
+            $user = User::where('id', $request->user_id);
             $user->update(array('committee' => $opcao));
             flash('Flag de comissão atualizado para o usuário: ' . $request->user_id . '!')->success();
         } catch(\Exception $e) {
             //LOG
-            \App\Log::create([
+            Log::create([
                 'user_id' => session('user_id'),
                 'code' => 'ERRO',
                 'ip' => session('ip'),
@@ -1098,13 +1151,13 @@ class VotacaoController extends Controller
 
     public function EnviarEmail(Request $request)
     {
-        $user = \App\User::find($request->user_id);
+        $user = User::find($request->user_id);
         $senha = $this->gerar_senha(10, false, true, true, false);
         $user->password = bcrypt($senha);
         $user->save();
         Mail::to($user->email)->send(new NovaSenhaUsuarioEmail($user, $senha));
         //LOG
-        \App\Log::create([
+        Log::create([
             'user_id' => session('user_id'),
             'code' => 'UPLOAD',
             'ip' => session('ip'),
@@ -1120,7 +1173,7 @@ class VotacaoController extends Controller
             // imprime o resultado da requisição
             if ($api_http != 'OK') {
                 //LOG
-                \App\Log::create([
+                Log::create([
                     'user_id' => session('user_id'),
                     'code' => 'SMS ADM',
                     'ip' => session('ip'),
@@ -1128,7 +1181,7 @@ class VotacaoController extends Controller
                 ]);
             } else {
                 //LOG
-                \App\Log::create([
+                Log::create([
                     'user_id' => session('user_id'),
                     'code' => 'SMS ADM',
                     'ip' => session('ip'),
@@ -1142,13 +1195,13 @@ class VotacaoController extends Controller
 
     public function EnviarEmailCom(Request $request)
     {
-        $user = \App\User::find($request->user_id);
+        $user = User::find($request->user_id);
         $senha = $this->gerar_senha(10, false, true, true, false);
         $user->password = bcrypt($senha);
         $user->save();
         Mail::to($user->email)->send(new NovaSenhaUsuarioEmail($user, $senha));
         //LOG
-        \App\Log::create([
+        Log::create([
             'user_id' => session('user_id'),
             'code' => 'UPLOAD',
             'ip' => session('ip'),
@@ -1164,7 +1217,7 @@ class VotacaoController extends Controller
             // imprime o resultado da requisição
             if ($api_http != 'OK') {
                 //LOG
-                \App\Log::create([
+                Log::create([
                     'user_id' => session('user_id'),
                     'code' => 'SMS COM',
                     'ip' => session('ip'),
@@ -1172,7 +1225,7 @@ class VotacaoController extends Controller
                 ]);
             } else {
                 //LOG
-                \App\Log::create([
+                Log::create([
                     'user_id' => session('user_id'),
                     'code' => 'SMS COM',
                     'ip' => session('ip'),
@@ -1186,12 +1239,12 @@ class VotacaoController extends Controller
 
     public function Liberar5Min(Request $request)
     {
-        $user = \App\User::find($request->user_id);
+        $user = User::find($request->user_id);
         $user->enabled_until = date('Y-m-d H:i:s', strtotime('+6 minutes',strtotime(date('Y-m-d H:i:s'))));
         $user->save();
         Mail::to($user->email)->send(new UsuarioLiberadoEmail($user));
         //LOG
-        \App\Log::create([
+        Log::create([
             'user_id' => session('user_id'),
             'code' => 'UPLOAD',
             'ip' => session('ip'),
@@ -1207,7 +1260,7 @@ class VotacaoController extends Controller
             // imprime o resultado da requisição
             if ($api_http != 'OK') {
                 //LOG
-                \App\Log::create([
+                Log::create([
                     'user_id' => session('user_id'),
                     'code' => 'SMS 5MIN',
                     'ip' => session('ip'),
@@ -1215,7 +1268,7 @@ class VotacaoController extends Controller
                 ]);
             } else {
                 //LOG
-                \App\Log::create([
+                Log::create([
                     'user_id' => session('user_id'),
                     'code' => 'SMS 5MIN',
                     'ip' => session('ip'),
@@ -1230,32 +1283,32 @@ class VotacaoController extends Controller
     public function Inativar(Request $request)
     {
         //LOG
-        \App\Log::create([
+        Log::create([
             'user_id' => session('user_id'),
-            'code' => 'INATIVAR',
+            'code' => $request->opcao,
             'ip' => session('ip'),
-            'description' => 'Inativando usuário: ' . $request->user_id,
+            'description' => $request->opcao . ' usuário: ' . $request->user_id,
         ]);
         try {
-            $user = \App\User::where('id', $request->user_id);
-            $user->update(array('able' => false));
-            flash('Usuário excluído: ' . $user->first()->name . '!')->success();
+            $user = User::where('id', $request->user_id);
+            $user->update(array('able' => $request->opcao === 'ativar' ? true : false));
+            flash($request->opcao . ' usuário executado com sucesso: ' . $user->first()->name . '!')->success();
         } catch(\Exception $e) {
             //LOG
-            \App\Log::create([
+            Log::create([
                 'user_id' => session('user_id'),
-                'code' => 'INATIVAR',
+                'code' => $request->opcao,
                 'ip' => session('ip'),
-                'description' => 'Erro ao inativar usuário: ' . $request->user_id . ': ' . $e->getMessage(),
+                'description' => 'Erro ao ' . $request->opcao . ' usuário: ' . $request->user_id . ': ' . $e->getMessage(),
             ]);
-            flash('Erro ao excluir usuário: ' . $user->first()->name . ' - ' . $e->getCode() . '!')->error();
+            flash('Erro ao ' . $request->opcao . ' usuário: ' . $user->first()->name . ' - ' . $e->getCode() . '!')->error();
         }
         return redirect(route('administrador'));
     }
 
     public function NovaSenha(Request $request)
     {
-        $user = \App\User::where('document', $request->cpf)->first();
+        $user = User::where('document', $request->cpf)->first();
         if (!$user) {
             flash('CPF Inválido!')->error();
             return redirect(route('/'));
@@ -1265,7 +1318,7 @@ class VotacaoController extends Controller
         $user->save();
         Mail::to($user->email)->send(new NovaSenhaUsuarioEmail($user, $senha));
         //LOG
-        \App\Log::create([
+        Log::create([
             'code' => 'UPLOAD',
             'ip' => session('ip'),
             'description' => 'Gerada nova senha de usuário (RESET): ' . $user->document . ' - ' . $user->name . ', senha: ' . $senha,
@@ -1280,14 +1333,14 @@ class VotacaoController extends Controller
             // imprime o resultado da requisição
             if ($api_http != 'OK') {
                 //LOG
-                \App\Log::create([
+                Log::create([
                     'code' => 'SMS RESET',
                     'ip' => session('ip'),
                     'description' => 'Não foi possível enviar o SMS para: ' . $celular . ' - ' . $user->name . ', senha: ' . $senha . ': ' . $api_http,
                 ]);
             } else {
                 //LOG
-                \App\Log::create([
+                Log::create([
                     'code' => 'SMS RESET',
                     'ip' => session('ip'),
                     'description' => 'SMS enviado: ' . $celular . ' - ' . $user->name . ', senha: ' . $senha . ': ' . $api_http,

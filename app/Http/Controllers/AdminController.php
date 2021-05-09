@@ -3,7 +3,10 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Poll;
+use App\Models\Poll;
+use App\Models\PollQuestion;
+use App\Models\PollQuestionOption;
+use App\Models\Document;
 use Illuminate\Support\Facades\DB;
 use PDF;
 
@@ -11,13 +14,13 @@ class AdminController extends Controller
 {
     Public Function Documentos() {
         //DETERMINAR ELEIÇÃO ATIVA / ÚLTIMA
-        $poll = \App\Poll::where('active', true)->orderby('id', 'DESC')->first();
+        $poll = Poll::where('active', true)->orderby('id', 'DESC')->first();
         return view('documentos', compact('poll'));
     }
 
     Public Function Zeresima($poll_id) {
         //EXISTE A ELEIÇÃO?
-        $poll = \App\Poll::find($poll_id);
+        $poll = Poll::find($poll_id);
         if (!$poll) {
             flash('Eleição Inexistente!')->error();
             return redirect()->route('documentos');
@@ -28,7 +31,7 @@ class AdminController extends Controller
             return redirect()->route('documentos');
         }
         //ELEIÇÃO JÁ POSSUI ZERÉSIMA?
-        $zeresima = \App\Document::where('poll_id', $poll_id)->where('type', 'ZERESIMA')->first();
+        $zeresima = Document::where('poll_id', $poll_id)->where('type', 'ZERESIMA')->first();
         if (empty($zeresima)) {
             $hash = md5(uniqid(rand(), true));
             $created_at = date_create($poll->start->format('Y-m-d H:i:s'));
@@ -38,12 +41,12 @@ class AdminController extends Controller
                 '<h2 style="text-align: center">ZERÉSIMA<br>'.
                 $poll->name . '</h2>';
             //QUESTOES
-            $pollquestions = \App\PollQuestion::where('poll_id', $poll_id)->orderby('id')->get();
+            $pollquestions = PollQuestion::where('poll_id', $poll_id)->orderby('id')->get();
             foreach ($pollquestions as $pollquestion) {
                 $content = $content . '<h3 style="text-align: center">' . $pollquestion->description . '</h3>' .
                     '<strong>Opção</strong>                                                              <strong>Votos</strong><br>';
                 //OPÇÕES
-                $pollquestionoptions = \App\PollQuestionOption::where('poll_question_id', $pollquestion->id)->orderby('id')->get();
+                $pollquestionoptions = PollQuestionOption::where('poll_question_id', $pollquestion->id)->orderby('id')->get();
                 foreach ($pollquestionoptions as $pollquestionoption) {
                     $votoscandidato = 0;
                     $opcao = $pollquestionoption->option;
@@ -54,7 +57,7 @@ class AdminController extends Controller
                 }
             }
             //EMITIR ZERÉSIMA COM DATA DE INÍCIO DA ELEIÇÃO MAIS ALGUNS SEGUNDOS RANDOM ATÉ 10s
-            \App\Document::create([
+            Document::create([
                 'poll_id' => $poll_id,
                 'type' => 'ZERESIMA',
                 'hash' => $hash,
@@ -63,7 +66,7 @@ class AdminController extends Controller
             ]);
         }
         //OBTER A ZERESIMA E ENVIAR PARA A VIEW
-        $zeresima = \App\Document::where('poll_id', $poll_id)->where('type', 'ZERESIMA')->first();
+        $zeresima = Document::where('poll_id', $poll_id)->where('type', 'ZERESIMA')->first();
         $pdf = PDF::loadView('zeresima', compact('zeresima'));
         return $pdf->setPaper('a4')->stream();
 //        return view('zeresima', compact('zeresima'));
@@ -71,7 +74,7 @@ class AdminController extends Controller
 
     Public Function BoletimApuracao($poll_id) {
         //EXISTE A ELEIÇÃO?
-        $poll = \App\Poll::find($poll_id);
+        $poll = Poll::find($poll_id);
         if (!$poll) {
             flash('Eleição Inexistente!')->error();
             return redirect()->route('documentos');
@@ -89,19 +92,19 @@ class AdminController extends Controller
             return redirect()->route('documentos');
         }
         //ELEIÇÃO JÁ POSSUI BOLETIM?
-        $boletimapuracao = \App\Document::where('poll_id', $poll_id)->where('type', 'BOLETIMAPURACAO')->first();
+        $boletimapuracao = Document::where('poll_id', $poll_id)->where('type', 'BOLETIMAPURACAO')->first();
         if (empty($boletimapuracao)) {
             $hash = md5(uniqid(rand(), true));
             $content = '<div align="center"><img src="https://afisvec.org.br/eleicoes/public/img/AFISVEC.png"></div>' .
                 '<h2 style="text-align: center">BOLETIM DE APURAÇÃO<br>'.
                 $poll->name . '</h2>';
             //QUESTOES
-            $pollquestions = \App\PollQuestion::where('poll_id', $poll_id)->orderby('id')->get();
+            $pollquestions = PollQuestion::where('poll_id', $poll_id)->orderby('id')->get();
             foreach ($pollquestions as $pollquestion) {
                 $content = $content . '<h3 style="text-align: center">' . $pollquestion->description . '</h3>' .
                     '<strong>Opção</strong>                                                              <strong>Votos</strong><br>';
                 //OPÇÕES
-                $pollquestionoptions = \App\PollQuestionOption::where('poll_question_id', $pollquestion->id)->orderby('id')->get();
+                $pollquestionoptions = PollQuestionOption::where('poll_question_id', $pollquestion->id)->orderby('id')->get();
                 foreach ($pollquestionoptions as $pollquestionoption) {
                     $votoscandidato = 0;
                     $opcao = $pollquestionoption->option;
@@ -113,7 +116,7 @@ class AdminController extends Controller
                 }
             }
             //EMITIR BOLETIM
-            \App\Document::create([
+            Document::create([
                 'poll_id' => $poll_id,
                 'type' => 'BOLETIMAPURACAO',
                 'hash' => $hash,
@@ -121,14 +124,14 @@ class AdminController extends Controller
             ]);
         }
         //OBTER O BOLETIM E ENVIAR PARA A VIEW
-        $boletimapuracao = \App\Document::where('poll_id', $poll_id)->where('type', 'BOLETIMAPURACAO')->first();
+        $boletimapuracao = Document::where('poll_id', $poll_id)->where('type', 'BOLETIMAPURACAO')->first();
         $pdf = PDF::loadView('boletimapuracao', compact('boletimapuracao'));
         return $pdf->setPaper('a4')->stream();
     }
 
     public function Autenticidade(Request $request) {
         //POSSUI DOCUMENTO?
-        $documento = \App\Document::where('hash', $request->hash)->first();
+        $documento = Document::where('hash', $request->hash)->first();
         if (empty($documento)) {
             flash('HASH incorreto - por favor verifique!')->error();
             return redirect()->route('documentos');

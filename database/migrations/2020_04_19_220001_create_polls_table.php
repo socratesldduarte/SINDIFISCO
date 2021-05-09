@@ -15,12 +15,15 @@ class CreatePollsTable extends Migration
     {
         Schema::create('polls', function (Blueprint $table) {
             $table->id();
+            $table->unsignedBigInteger('poll_type_id');
 
+            $table->string('code', 20)->unique();
             $table->string('name', 100);
             $table->dateTime('start');
             $table->dateTime('end');
             $table->boolean('active');
 
+            $table->foreign('poll_type_id')->references('id')->on('poll_types');
             $table->timestamps();
         });
     }

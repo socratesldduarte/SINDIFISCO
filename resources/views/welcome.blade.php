@@ -25,9 +25,13 @@ session(['votacao_user_id' => '']);
 <body class="text-center">
 <form name="frm_Login" class="form-signin" method="post" action="{{ route('login') }}">
     @csrf
-    <h1>&nbsp;</h1>
+    <h1> </h1>
     <img class="mb-4" src="{{ asset("img/AFISVEC.png") }}" alt="">
-    <h1 class="h3 mb-3 font-weight-normal">Faça o login para iniciar</h1>
+
+    <h1 class="h3 mb-3 font-weight-normal">
+        {{$poll->code}}<br>
+        Faça o login para iniciar
+    </h1>
 
     <div id="flashMessage">
        @include('flash::message')

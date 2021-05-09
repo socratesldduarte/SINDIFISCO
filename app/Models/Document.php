@@ -1,6 +1,6 @@
 <?php
 
-namespace App;
+namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
@@ -12,7 +12,7 @@ class Document extends Model
     ];
     protected $dates = ['created_at', 'updated_at'];
 
-    private function poll() {
+    public function poll() {
         return $this->belongsTo(Poll::class, 'poll_id');
     }
 }

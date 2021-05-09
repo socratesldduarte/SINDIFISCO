@@ -1,5 +1,10 @@
-Associado 1;00000000001;associado1@swge.com.br;(51)91111-1111
-Associado 2;00000000002;associado2@swge.com.br;(51)91111-1112
-Associado 3;00000000003;associado3@swge.com.br;(51)91111-1113
-Associado 4;00000000004;associado4@swge.com.br;(51)91111-1114
-Associado 5;00000000005;associado5@swge.com.br;(51)91111-1115
+Mesa1;1;;;Associado 1;00000000001;associado1@swge.com.br;(51)91111-0001
+Mesa1;;1;;Associado 2;00000000002;associado2@swge.com.br;(51)91111-0002
+Mesa1;;;1;Associado 3;00000000003;associado3@swge.com.br;(51)91111-0003
+Mesa1;;;1;Associado 4;00000000004;associado4@swge.com.br;(51)91111-0004
+Mesa1;;;1;Associado 5;00000000005;associado5@swge.com.br;(51)91111-0005
+Mesa1;;;1;Associado 6;00000000006;associado6@swge.com.br;(51)91111-0006
+Mesa1;;;1;Associado 7;00000000007;associado7@swge.com.br;(51)91111-0007
+Mesa1;;;1;Associado 8;00000000008;associado8@swge.com.br;(51)91111-0008
+Mesa1;;;1;Associado 9;00000000009;associado9@swge.com.br;(51)91111-0009
+Mesa1;;;1;Associado 10;00000000010;associado10@swge.com.br;(51)91111-0010
