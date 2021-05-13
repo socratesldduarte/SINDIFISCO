@@ -639,7 +639,7 @@ class VotacaoController extends Controller
 
                 $linhaarray = explode(';', $linha);
 
-                if (count($linhaarray) != 8 ) {
+                if (count($linhaarray) != 9 ) {
                     $Log = $Log . 'Erro ao processar registro. Linha: ' . $linha . '<br>';
                     //LOG
                     Log::create([
@@ -654,10 +654,11 @@ class VotacaoController extends Controller
                 if ($nome != '') {
                     $cpf = $linhaarray[5];
                     $email = $linhaarray[6];
+                    $birthday = $linhaarray[7];
                     if ($email == '') {
                         $email = ' ';
                     }
-                    $celular = $linhaarray[7];
+                    $celular = $linhaarray[8];
                     $celular = str_replace(['-', '(', ')', '+'], ['', '', '', ''], $celular);
                     if ($celular == '') {
                         $celular = ' ';
@@ -681,6 +682,7 @@ class VotacaoController extends Controller
                             $user->able = $apto;
                             $user->name = $nome;
                             $user->email = $email;
+                            $user->birthday = $birthday;
                             $user->mobile = $celular;
                             $user->administrator = $administrador;
                             $user->committee = $comissao;
@@ -695,12 +697,17 @@ class VotacaoController extends Controller
                                 'ip' => session('ip'),
                                 'description' => 'Atualizado na mesa ' . $mesa . ' o usuário: ' . $cpf . ' - ' . $nome . ', senha: ' . $senha,
                             ]);
+//echo 'USUÁRIO: ' . $cpf . ', senha: ' . $senha . '<br>';
                             Mail::to($email)->send(new ImportacaoUsuarioEmail($user, $senha));
                             // Envio do SMS
                             $celular = trim($celular);
                             $celular = str_replace(['(', ')', '-'], ['', '', ''], $celular);
-                            if (strlen($celular) == 20) {
-                                $mensagem = urlencode("ELEICAO AFISVEC - sua senha de acesso e: " . $senha);
+                            if (strlen($celular) == 11) {
+                                $mesa = '';
+                                if ($user->poll) {
+                                    $mesa = $user->poll->code;
+                                }
+                                $mensagem = urlencode("ELEICAO AFISVEC - endereço http://afisvec.swge.com.br/eleicao/" . $mesa . " sua senha de acesso e: " . $senha);
                                 // concatena a url da api com a variável carregando o conteúdo da mensagem
                                 $url_api = "https://www.iagentesms.com.br/webservices/http.php?metodo=envio&usuario=Afisvec&senha=Rapunzel5&celular=" . $celular . "&mensagem={$mensagem}";
                                 // realiza a requisição http passando os parâmetros informados
@@ -743,6 +750,7 @@ class VotacaoController extends Controller
                                 'able' => $apto,
                                 'name' => $nome,
                                 'email' => $email,
+                                'birthday' => $birthday,
                                 'mobile' => $celular,
                                 'administrator' => $administrador,
                                 'committee' => $comissao,
@@ -757,12 +765,17 @@ class VotacaoController extends Controller
                                 'ip' => session('ip'),
                                 'description' => 'Criado usuário: ' . $cpf . ' - ' . $nome . ', senha: ' . $senha,
                             ]);
+//echo 'USUÁRIO: ' . $cpf . ', senha: ' . $senha . '<br>';
                             Mail::to($email)->send(new ImportacaoUsuarioEmail($user, $senha));
                             // Envio do SMS
                             $celular = trim($celular);
                             $celular = str_replace(['(', ')', '-'], ['', '', ''], $celular);
-                            if (strlen($celular) == 20) {
-                                $mensagem = urlencode("ELEICAO AFISVEC - sua senha de acesso e: " . $senha);
+                            if (strlen($celular) == 11) {
+                                $mesa = '';
+                                if ($user->poll) {
+                                    $mesa = $user->poll->code;
+                                }
+                                $mensagem = urlencode("ELEICAO AFISVEC - endereço http://afisvec.swge.com.br/eleicao/" . $mesa . " sua senha de acesso e: " . $senha);
                                 // concatena a url da api com a variável carregando o conteúdo da mensagem
                                 $url_api = "https://www.iagentesms.com.br/webservices/http.php?metodo=envio&usuario=Afisvec&senha=Rapunzel5&celular=" . $celular . "&mensagem={$mensagem}";
                                 // realiza a requisição http passando os parâmetros informados

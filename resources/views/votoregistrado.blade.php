@@ -35,7 +35,7 @@ session(['votacao_user_id' => '']);
 <script src="{{ asset("js/bootstrap.bundle.js") }}"></script>
 <script>
     setTimeout(function(){
-        window.location.href = '{{ route('/') }}';
+        window.location.href = '{{ $poll->code ? route('eleicao.codigo', ['codigo' => $poll->code]) : route('/') }}';
     }, 5000);
 </script>
 </body>

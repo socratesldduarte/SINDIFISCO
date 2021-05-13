@@ -19,7 +19,7 @@
 <form class="form-votacao" method="post" action="{{ route('registrovoto') }}">
     <input type="hidden" name="votacao_user_id" value="{{ session('votacao_user_id') }}">
     @csrf
-    <h1>&nbsp;</h1>
+    <h1> </h1>
     <img class="mb-4" src="{{ asset("img/AFISVEC.png") }}" alt="">
     <h1 class="h3 mb-3 font-weight-normal">{{ $poll->name }}</h1>
     <h2 class="h3 mb-3 font-weight-normal">Eleitor: {{ $user->name }}</h2>
@@ -180,7 +180,7 @@
 <script>
     $.sessionTimeout({
         keepAliveUrl: '{{ route('keep-alive') }}',
-        logoutUrl: '{{ route('/') }}',
+        logoutUrl: '{{ $poll->code ? route('eleicao.codigo', ['codigo' => $poll->code]) : route('/') }}',
         redirUrl: '{{ route('votacao-locked') }}',
         warnAfter: 540000,
         redirAfter: 600000

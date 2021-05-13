@@ -20,6 +20,7 @@ class CreateUsersTable extends Migration
             $table->string('document', 11);
             $table->boolean('able');
             $table->string('name', 100);
+            $table->date('birthday');
             $table->string('email', 100);
             $table->string('mobile', 40);
             $table->boolean('administrator')->default(false);

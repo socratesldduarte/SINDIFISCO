@@ -1,10 +1,8 @@
-Mesa1;1;;;Associado 1;00000000001;associado1@swge.com.br;(51)91111-0001
-Mesa1;;1;;Associado 2;00000000002;associado2@swge.com.br;(51)91111-0002
-Mesa1;;;1;Associado 3;00000000003;associado3@swge.com.br;(51)91111-0003
-Mesa1;;;1;Associado 4;00000000004;associado4@swge.com.br;(51)91111-0004
-Mesa1;;;1;Associado 5;00000000005;associado5@swge.com.br;(51)91111-0005
-Mesa1;;;1;Associado 6;00000000006;associado6@swge.com.br;(51)91111-0006
-Mesa1;;;1;Associado 7;00000000007;associado7@swge.com.br;(51)91111-0007
-Mesa1;;;1;Associado 8;00000000008;associado8@swge.com.br;(51)91111-0008
-Mesa1;;;1;Associado 9;00000000009;associado9@swge.com.br;(51)91111-0009
-Mesa1;;;1;Associado 10;00000000010;associado10@swge.com.br;(51)91111-0010
+MESA1;0;0;1;CARLOS HENRIQUE LUCHO FERRETJANS;35675780068;carloslf@sefaz.rs.gov.br;1931-06-22;(51)995196112
+MESA1;0;0;1;CARLOS TOCCHETTO;36892114091;carlostocchetto@hotmail.com;1963-03-23;(51)991883187
+MESA1;0;0;1;GONAR PAULO FERNANDES;22959130049;gonarfernandes@gmail.com;1956-12-19;(51)992169102
+MESA2;0;0;1;LEOCADIO DE SOUZA;09120173091;voleosouza@gmail.com;1947-05-11;(51)992459122
+MESA2;0;0;1;NEWTON BERFORD GUARANA;62837966720;newguarana@gmail.com;1959-03-15;(51)92445038
+MESA2;0;0;1;CARLOS EDUARDO ALVES DE ALVES;40408302020;carlosaa@sefaz.rs.gov.br;1985-08-22;(51)991233013
+MESA1;0;0;0;PAULO RICARDO SALDANHA GUARAGNA;37542966049;pauloguaragna@gmail.com;1959-10-13;(51)991883313
+MESA2;0;0;0;MARCELO RAMOS DE MELLO;45659605087;marcelom@sefaz.rs.gov.br;1977-01-24;(51)996663595

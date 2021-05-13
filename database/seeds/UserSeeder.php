@@ -17,6 +17,7 @@ class UserSeeder extends Seeder
                 'able' => true,
                 'name' => 'Administrador do Sistema',
                 'email' => 'admin@swge.com.br',
+                'birthday' => '2000-12-31',
                 'mobile' => '+55(34)99670-6509',
                 'administrator' => true,
                 'committee' => false,

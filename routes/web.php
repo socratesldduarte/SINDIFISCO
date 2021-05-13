@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\Poll;
 use Illuminate\Support\Facades\Route;
 
 use App\Http\Controllers\{VotacaoController,AdminController};
@@ -51,7 +52,8 @@ Route::get('/votacao-locked', [VotacaoController::class, 'VotacaoLocked'])->name
 Route::post('/registrovoto', [VotacaoController::class, 'Registro'])->name('registrovoto');
 
 Route::get('/votoregistrado', function () {
-    return view('votoregistrado');
+    $poll = Poll::find(session('poll_id'));
+    return view('votoregistrado', compact('poll'));
 })->name('votoregistrado');
 
 Route::get('/javotou', function () {

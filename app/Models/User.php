@@ -8,7 +8,7 @@ class User extends Model
 {
     protected $table = 'users';
     protected $fillable = [
-        'poll_id', 'document', 'able', 'name', 'email', 'mobile', 'administrator', 'committee', 'can_be_voted', 'password', 'enabled_until',
+        'poll_id', 'document', 'able', 'name', 'email', 'birthday', 'mobile', 'administrator', 'committee', 'can_be_voted', 'password', 'enabled_until',
     ];
     protected $dates = ['created_at', 'updated_at', 'enabled_until'];
 
