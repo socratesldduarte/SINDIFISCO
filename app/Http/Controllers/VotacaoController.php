@@ -678,7 +678,7 @@ class VotacaoController extends Controller
                     if (!empty($user)) {
                         try {
                             //EXISTE USUÁRIO NA MESA, ATUALIZAR
-                            $senha = $this->gerar_senha(10, false, true, true, false);
+                            $senha = $this->gerar_senha(5, false, true, true, false);
                             $user->able = $apto;
                             $user->name = $nome;
                             $user->email = $email;
@@ -707,7 +707,7 @@ class VotacaoController extends Controller
                                 if ($user->poll) {
                                     $mesa = $user->poll->code;
                                 }
-                                $mensagem = urlencode("ELEICAO AFISVEC - endereço http://afisvec.swge.com.br/eleicao/" . $mesa . " sua senha de acesso e: " . $senha);
+                                $mensagem = urlencode("ELEICAO AFISVEC - endereço " . asset('/') . "eleicao/" . $mesa . " sua senha de acesso e: " . $senha);
                                 // concatena a url da api com a variável carregando o conteúdo da mensagem
                                 $url_api = "https://www.iagentesms.com.br/webservices/http.php?metodo=envio&usuario=Afisvec&senha=Rapunzel5&celular=" . $celular . "&mensagem={$mensagem}";
                                 // realiza a requisição http passando os parâmetros informados
@@ -743,7 +743,7 @@ class VotacaoController extends Controller
                     } else {
                         try {
                             //NÃO EXISTE, CRIAR
-                            $senha = $this->gerar_senha(10, false, true, true, false);
+                            $senha = $this->gerar_senha(5, false, true, true, false);
                             $user = User::create([
                                 'poll_id' => $poll ? $poll->id : null,
                                 'document' => $cpf,
@@ -775,7 +775,7 @@ class VotacaoController extends Controller
                                 if ($user->poll) {
                                     $mesa = $user->poll->code;
                                 }
-                                $mensagem = urlencode("ELEICAO AFISVEC - endereço http://afisvec.swge.com.br/eleicao/" . $mesa . " sua senha de acesso e: " . $senha);
+                                $mensagem = urlencode("ELEICAO AFISVEC - endereço " . asset('/') . "eleicao/" . $mesa . " sua senha de acesso e: " . $senha);
                                 // concatena a url da api com a variável carregando o conteúdo da mensagem
                                 $url_api = "https://www.iagentesms.com.br/webservices/http.php?metodo=envio&usuario=Afisvec&senha=Rapunzel5&celular=" . $celular . "&mensagem={$mensagem}";
                                 // realiza a requisição http passando os parâmetros informados
@@ -1165,7 +1165,7 @@ class VotacaoController extends Controller
     public function EnviarEmail(Request $request)
     {
         $user = User::find($request->user_id);
-        $senha = $this->gerar_senha(10, false, true, true, false);
+        $senha = $this->gerar_senha(5, false, true, true, false);
         $user->password = bcrypt($senha);
         $user->save();
         Mail::to($user->email)->send(new NovaSenhaUsuarioEmail($user, $senha));
@@ -1178,7 +1178,11 @@ class VotacaoController extends Controller
         ]);
         // Envio do SMS
         if (strlen($user->celular) == 11) {
-            $mensagem = urlencode("ELEICAO AFISVEC - sua nova senha de acesso e: " . $senha);
+            $mesa = '';
+            if ($user->poll) {
+                $mesa = $user->poll->code;
+            }
+            $mensagem = urlencode("ELEICAO AFISVEC - endereço " . asset('/') . "eleicao/" . $mesa . " sua nova senha de acesso e: " . $senha);
             // concatena a url da api com a variável carregando o conteúdo da mensagem
             $url_api = "https://www.iagentesms.com.br/webservices/http.php?metodo=envio&usuario=Afisvec&senha=Rapunzel5&celular=" . $user->celular . "&mensagem={$mensagem}";
             // realiza a requisição http passando os parâmetros informados
@@ -1209,7 +1213,7 @@ class VotacaoController extends Controller
     public function EnviarEmailCom(Request $request)
     {
         $user = User::find($request->user_id);
-        $senha = $this->gerar_senha(10, false, true, true, false);
+        $senha = $this->gerar_senha(5, false, true, true, false);
         $user->password = bcrypt($senha);
         $user->save();
         Mail::to($user->email)->send(new NovaSenhaUsuarioEmail($user, $senha));
@@ -1222,7 +1226,11 @@ class VotacaoController extends Controller
         ]);
         // Envio do SMS
         if (strlen($user->celular) == 11) {
-            $mensagem = urlencode("ELEICAO AFISVEC - sua nova senha de acesso e: " . $senha);
+            $mesa = '';
+            if ($user->poll) {
+                $mesa = $user->poll->code;
+            }
+            $mensagem = urlencode("ELEICAO AFISVEC - endereço " . asset('/') . "eleicao/" . $mesa . " sua nova senha de acesso e: " . $senha);
             // concatena a url da api com a variável carregando o conteúdo da mensagem
             $url_api = "https://www.iagentesms.com.br/webservices/http.php?metodo=envio&usuario=Afisvec&senha=Rapunzel5&celular=" . $user->celular . "&mensagem={$mensagem}";
             // realiza a requisição http passando os parâmetros informados
@@ -1265,7 +1273,11 @@ class VotacaoController extends Controller
         ]);
         // Envio do SMS
         if (strlen($user->celular) == 11) {
-            $mensagem = urlencode("ELEICAO AFISVEC - usuario liberado (5 minutos)");
+            $mesa = '';
+            if ($user->poll) {
+                $mesa = $user->poll->code;
+            }
+            $mensagem = urlencode("ELEICAO AFISVEC - endereço " . asset('/') . "eleicao/" . $mesa . " usuario liberado (5 minutos)");
             // concatena a url da api com a variável carregando o conteúdo da mensagem
             $url_api = "https://www.iagentesms.com.br/webservices/http.php?metodo=envio&usuario=Afisvec&senha=Rapunzel5&celular=" . $user->celular . "&mensagem={$mensagem}";
             // realiza a requisição http passando os parâmetros informados
@@ -1326,7 +1338,7 @@ class VotacaoController extends Controller
             flash('CPF Inválido!')->error();
             return redirect(route('/'));
         }
-        $senha = $this->gerar_senha(10, false, true, true, false);
+        $senha = $this->gerar_senha(5, false, true, true, false);
         $user->password = bcrypt($senha);
         $user->save();
         Mail::to($user->email)->send(new NovaSenhaUsuarioEmail($user, $senha));
@@ -1338,7 +1350,11 @@ class VotacaoController extends Controller
         ]);
         // Envio do SMS
         if (strlen($user->celular) == 11) {
-            $mensagem = urlencode("ELEICAO AFISVEC - sua nova senha de acesso e: " . $senha);
+            $mesa = '';
+            if ($user->poll) {
+                $mesa = $user->poll->code;
+            }
+            $mensagem = urlencode("ELEICAO AFISVEC - endereço " . asset('/') . "eleicao/" . $mesa . " sua nova senha de acesso e: " . $senha);
             // concatena a url da api com a variável carregando o conteúdo da mensagem
             $url_api = "https://www.iagentesms.com.br/webservices/http.php?metodo=envio&usuario=Afisvec&senha=Rapunzel5&celular=" . $user->celular . "&mensagem={$mensagem}";
             // realiza a requisição http passando os parâmetros informados

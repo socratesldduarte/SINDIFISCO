@@ -29,7 +29,7 @@ session(['votacao_user_id' => '']);
     <div id="flashMessage">
         @include('flash::message')
     </div>
-    <p class="mt-5 mb-3 text-muted">&copy; 2020- <a href="https://afisvec.org.br/" target="_blank">AFISVEC</a></p>
+    <p class="mt-5 mb-3 text-muted">&copy; 2021- <a href="https://afisvec.org.br/" target="_blank">AFISVEC</a></p>
 </form>
 <script src="{{ asset("js/jquery.js") }}"></script>
 <script src="{{ asset("js/bootstrap.bundle.js") }}"></script>

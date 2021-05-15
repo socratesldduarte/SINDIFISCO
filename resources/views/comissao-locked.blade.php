@@ -31,7 +31,7 @@ session(['committee' => '']);
     </div>
 
     <button class="btn btn-lg btn-primary btn-block" type="submit">Retornar à Tela Inicial</button>
-    <p class="mt-5 mb-3 text-muted">&copy; 2020- <a href="https://afisvec.org.br/" target="_blank">AFISVEC</a></p>
+    <p class="mt-5 mb-3 text-muted">&copy; 2021- <a href="https://afisvec.org.br/" target="_blank">AFISVEC</a></p>
 </form>
 <script src="{{ asset("js/jquery.js") }}"></script>
 <script src="{{ asset("js/bootstrap.bundle.js") }}"></script>

@@ -48,7 +48,7 @@ session(['poll_id' => '1']);
     <input type="password" name="senha" id="senha" class="form-control" placeholder="Senha" required maxlength="20">
 
     <button class="btn btn-lg btn-primary btn-block" type="submit">Fazer Login</button>
-    <p class="mt-5 mb-3 text-muted">&copy; 2020- <a href="https://afisvec.org.br/" target="_blank">AFISVEC</a></p>
+    <p class="mt-5 mb-3 text-muted">&copy; 2021- <a href="https://afisvec.org.br/" target="_blank">AFISVEC</a></p>
 </form>
 <script src="{{ asset("js/jquery.js") }}"></script>
 <script src="{{ asset("js/bootstrap.bundle.js") }}"></script>

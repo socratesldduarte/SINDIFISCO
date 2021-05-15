@@ -41,7 +41,7 @@
     <input type="text" name="hash" id="hash" class="form-control" placeholder="hash" required autofocus maxlength="40">
 
     <button type="submit" class="btn btn-lg btn-primary btn-block">Autenticar</button>
-    <p class="mt-5 mb-3 text-muted">&copy; 2020- <a href="https://afisvec.org.br/" target="_blank">AFISVEC</a></p>
+    <p class="mt-5 mb-3 text-muted">&copy; 2021- <a href="https://afisvec.org.br/" target="_blank">AFISVEC</a></p>
 </form>
 </body>
 </html>
