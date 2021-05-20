@@ -31,7 +31,8 @@
             <div class="row">
                 <div class="col-1">#</div>
                 <div class="col-2">CPF</div>
-                <div class="col-6">Nome</div>
+                <div class="col-2">Eleição</div>
+                <div class="col-4">Nome</div>
                 <div class="col-3 text-right">Ações</div>
             </div>
         </div>
@@ -40,7 +41,8 @@
             <div class="row">
                 <div class="col-1">{{ $usuario->id }}</div>
                 <div class="col-2">{{ $usuario->document }}</div>
-                <div class="col-6">{{ $usuario->name }}</div>
+                <div class="col-2">@if($usuario->poll){{$usuario->poll->name}}@endif</div>
+                <div class="col-4">{{ $usuario->name }}</div>
                 <div class="col-3 text-right"><button class="btn-sm btn-primary" onclick="f_Email('{{ $usuario->id }}');">E-MAIL / SMS</button>&nbsp;<button class="btn-sm btn-warning" onclick="f_Liberar('{{ $usuario->id }}');">LIBERAR (5 MIN)</button></div>
             </div>
         </div>
@@ -57,23 +59,24 @@
         <div class="list-group-item list-group-item-action text-left active">
             <div class="row">
                 <div class="col-1">#</div>
+                <div class="col-3">Tipo</div>
                 <div class="col-4">Nome</div>
-                <div class="col-4">Realização</div>
-                <div class="col-3">Cadastrada em</div>
+                <div class="col-2">Realização</div>
+                <div class="col-2">Cadastrada em</div>
             </div>
         </div>
         <div class="list-group-item list-group-item-action text-left">
             <div class="row">
                 <div class="col-1">{{ $poll->id }}</div>
+                <div class="col-3">{{ $poll->polltype->name }}</div>
                 <div class="col-4">{{ $poll->name }}</div>
-                <div class="col-4">{{ $poll->start->format('d/m/Y') . ' a ' . $poll->end->format('d/m/Y') }}</div>
-                <div class="col-3">{{ $poll->created_at->format('d/m/Y H:i:s') }}</div>
+                <div class="col-2">{{ $poll->start->format('d/m/Y H:i') . ' a ' . $poll->end->format('d/m/Y H:i') }}</div>
+                <div class="col-2">{{ $poll->created_at->format('d/m/Y H:i') }}</div>
             </div>
         </div>
         <?php
-        $pollquestions = \App\PollQuestion::where('poll_id', $poll->id)->orderby('id', 'ASC')->get();
-        if (count($pollquestions) > 0) {
-            foreach ($pollquestions as $pollquestion) {
+        if (count($poll->pollquestions) > 0) {
+            foreach ($poll->pollquestions as $pollquestion) {
         ?>
             <div class="list-group-item list-group-item-action text-left">
                 <div class="row">
@@ -84,9 +87,8 @@
                 </div>
             </div>
         <?php
-                $pollquestionoptions = \App\PollQuestionOption::where('poll_question_id', $pollquestion->id)->orderby('id', 'ASC')->get();
-                if (count($pollquestionoptions) > 0) {
-                    foreach ($pollquestionoptions as $pollquestionoption) {
+                if (count($pollquestion->pollquestionoptions) > 0) {
+                    foreach ($pollquestion->pollquestionoptions as $pollquestionoption) {
         ?>
                 <div class="list-group-item list-group-item-action text-left">
                     <div class="row">
