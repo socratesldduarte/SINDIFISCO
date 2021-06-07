@@ -18,7 +18,7 @@ class CreatePollsTable extends Migration
             $table->unsignedBigInteger('poll_type_id');
 
             $table->string('code', 20)->unique();
-            $table->string('name', 100);
+            $table->string('name', 150);
             $table->dateTime('start');
             $table->dateTime('end');
             $table->boolean('active');

@@ -55,13 +55,17 @@ class VotacaoController extends Controller
 
     public function TelaInicial(string $codigo = null, Request $request) {
         if (!isset($codigo) || $codigo == '') {
-            //OBTER A ÚLTIMA "MESA"
-            $poll = Poll::where('active', true)->orderby('id', 'DESC')->first();
-            if ($poll) {
-                $codigo = $poll->code;
-                return redirect(route('eleicao.codigo', ['codigo' => $codigo]));
+            //OBTER TODAS AS MESAS ATIVAS
+            $polls = Poll::where('active', true)->orderby('id')->get();
+            if (count($polls)) {
+                echo "<p align='center'>SELECIONE A MESA</p>";
+                foreach ($polls as $poll) {
+                    echo "<a href=" . route('eleicao.codigo', ['codigo' => $poll->code]) . ">" . $poll->name . "</a><br><br>";
+                }
+                die();
             } else {
-                dd('NENHUM ELEICAO DEFINIDA');
+                echo('NENHUM ELEICAO DEFINIDA');
+                die();
             }
         }
         session(['administrator' => '']);
@@ -622,7 +626,6 @@ class VotacaoController extends Controller
             'ip' => session('ip'),
             'description' => 'Iniciando processo de upload de usuários',
         ]);
-        DB::connection('mysql')->beginTransaction();
         while(!feof($fileAberto)) {
             $linha = trim(fgets($fileAberto));
             //LOG
@@ -677,6 +680,7 @@ class VotacaoController extends Controller
                     $user = $user->first();
                     if (!empty($user)) {
                         try {
+                            DB::connection('mysql')->beginTransaction();
                             //EXISTE USUÁRIO NA MESA, ATUALIZAR
                             $senha = $this->gerar_senha(5, false, true, true, false);
                             $user->able = $apto;
@@ -731,7 +735,9 @@ class VotacaoController extends Controller
                                     ]);
                                 }
                             }
+                            DB::connection('mysql')->commit();
                         } catch (\Exception $e) {
+                            DB::connection('mysql')->rollBack();
                             //LOG
                             Log::create([
                                 'user_id' => session('user_id'),
@@ -742,6 +748,7 @@ class VotacaoController extends Controller
                         }
                     } else {
                         try {
+                            DB::connection('mysql')->beginTransaction();
                             //NÃO EXISTE, CRIAR
                             $senha = $this->gerar_senha(5, false, true, true, false);
                             $user = User::create([
@@ -799,7 +806,9 @@ class VotacaoController extends Controller
                                     ]);
                                 }
                             }
+                            DB::connection('mysql')->commit();
                         } catch (Exception $e) {
+                            DB::connection('mysql')->rollBack();
                             //LOG
                             Log::create([
                                 'user_id' => session('user_id'),

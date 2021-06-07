@@ -45,7 +45,7 @@ session(['votacao_user_id' => '']);
 
     <button class="btn btn-lg btn-primary btn-block" onclick="f_Login();">Fazer Login</button>
     <button class="btn btn-lg btn-secondary btn-block" onclick="f_NovaSenha();">Solicitar Nova Senha</button>
-    <h5 class="mt-5 mb-3 text-muted"><a href="https://afisvec.org.br/portal/wp-content/uploads/2020/05/Instruções.mp4" target="_blank">Dúvidas? Clique<br>para ver o vídeo.</a></h5>
+{{--    <h5 class="mt-5 mb-3 text-muted"><a href="https://afisvec.org.br/portal/wp-content/uploads/2020/05/Instruções.mp4" target="_blank">Dúvidas? Clique<br>para ver o vídeo.</a></h5>--}}
     <p class="mt-5 mb-3 text-muted">&copy; 2021- <a href="https://afisvec.org.br/" target="_blank">AFISVEC</a></p>
 </form>
 <script src="{{ asset("js/jquery.js") }}"></script>
