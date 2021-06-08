@@ -23,6 +23,7 @@ session(['votacao_user_id' => '']);
 
 </head>
 <body class="text-center">
+@if ($poll)
 <form name="frm_Login" class="form-signin" method="post" action="{{ route('login') }}">
     @csrf
     <h1> </h1>
@@ -48,6 +49,26 @@ session(['votacao_user_id' => '']);
 {{--    <h5 class="mt-5 mb-3 text-muted"><a href="https://afisvec.org.br/portal/wp-content/uploads/2020/05/Instruções.mp4" target="_blank">Dúvidas? Clique<br>para ver o vídeo.</a></h5>--}}
     <p class="mt-5 mb-3 text-muted">&copy; 2021- <a href="https://afisvec.org.br/" target="_blank">AFISVEC</a></p>
 </form>
+@else
+    @if(count($polls))
+    <form name="frm_SelecionaMesa" class="form-signin" method="post" action="{{ route('login') }}">
+        @csrf
+        <h1> </h1>
+        <img class="mb-4" src="{{ asset("img/AFISVEC.png") }}" alt="">
+
+        <h1 class="h3 mb-3 font-weight-normal">
+            Selecione sua mesa para fazer o login
+        </h1>
+        @foreach($polls as $mesa)
+        <p>
+            <a href="{{route('eleicao.codigo', ['codigo' => $mesa->code])}}">{{$mesa->code}} - {{$mesa->name}}</a>
+        </p>
+        @endforeach
+        {{--    <h5 class="mt-5 mb-3 text-muted"><a href="https://afisvec.org.br/portal/wp-content/uploads/2020/05/Instruções.mp4" target="_blank">Dúvidas? Clique<br>para ver o vídeo.</a></h5>--}}
+        <p class="mt-5 mb-3 text-muted">&copy; 2021- <a href="https://afisvec.org.br/" target="_blank">AFISVEC</a></p>
+    </form>
+    @endif
+@endif
 <script src="{{ asset("js/jquery.js") }}"></script>
 <script src="{{ asset("js/bootstrap.bundle.js") }}"></script>
 <script>

@@ -54,20 +54,7 @@ class VotacaoController extends Controller
     }
 
     public function TelaInicial(string $codigo = null, Request $request) {
-        if (!isset($codigo) || $codigo == '') {
-            //OBTER TODAS AS MESAS ATIVAS
-            $polls = Poll::where('active', true)->orderby('id')->get();
-            if (count($polls)) {
-                echo "<p align='center'>SELECIONE A MESA</p>";
-                foreach ($polls as $poll) {
-                    echo "<a href=" . route('eleicao.codigo', ['codigo' => $poll->code]) . ">" . $poll->name . "</a><br><br>";
-                }
-                die();
-            } else {
-                echo('NENHUM ELEICAO DEFINIDA');
-                die();
-            }
-        }
+        $polls = Poll::where('active', true)->orderby('id')->get();
         session(['administrator' => '']);
         session(['committee' => '']);
         session(['user_id' => '']);
@@ -86,7 +73,7 @@ class VotacaoController extends Controller
             session(['poll_id' => '0']);
         }
         //VOTACAO
-        return view('welcome', compact('poll'));
+        return view('welcome', compact('poll', 'polls'));
     }
 
     public function TelaInicialAdm(Request $request) {
