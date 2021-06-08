@@ -24,11 +24,14 @@
     @csrf
     <h1>&nbsp;</h1>
     <img class="mb-4" src="{{ asset("img/AFISVEC.png") }}" alt="">
-    @if($poll)
+    @if(count($polls))
+        @foreach($polls as $poll)
         <h1 class="h3 mb-3 font-weight-normal">{{ $poll->name }}</h1>
         <h5 class="h5 mb-3 font-weight-normal">De {{ $poll->start->format('d/m/Y H:i:s') }} a {{ $poll->end->format('d/m/Y H:i:s') }}</h5>
-        <h5 class="h5 mb-3 font-weight-normal"><a href="{{ route('zeresima', ['poll_id' => $poll->id]) }}">ZERÉSIMA</a></h5>
-        <h5 class="h5 mb-3 font-weight-normal"><a href="{{ route('boletimapuracao', ['poll_id' => $poll->id]) }}">BOLETIM DE APURAÇÃO</a></h5>
+        <h5 class="h5 mb-3 font-weight-normal"><a href="{{ route('zeresima', ['poll_id' => $poll->id]) }}" target="_blank">ZERÉSIMA</a></h5>
+        <h5 class="h5 mb-3 font-weight-normal"><a href="{{ route('boletimapuracao', ['poll_id' => $poll->id]) }}" target="_blank">BOLETIM DE APURAÇÃO</a></h5>
+        <h5>&nbsp;</h5>
+        @endforeach
     @endif
     <h5>&nbsp;</h5>
     <h6 class="h6 mb-3 font-weight-normal">Para acessar um documento emitido anteriormente, informe o código de autenticidade abaixo</h6>

@@ -14,8 +14,8 @@ class AdminController extends Controller
 {
     Public Function Documentos() {
         //DETERMINAR ELEIÇÃO ATIVA / ÚLTIMA
-        $poll = Poll::where('active', true)->orderby('id', 'DESC')->first();
-        return view('documentos', compact('poll'));
+        $polls = Poll::where('active', true)->orderby('id', 'ASC')->get();
+        return view('documentos', compact('polls'));
     }
 
     Public Function Zeresima($poll_id) {
@@ -49,7 +49,7 @@ class AdminController extends Controller
                 $pollquestionoptions = PollQuestionOption::where('poll_question_id', $pollquestion->id)->orderby('id')->get();
                 foreach ($pollquestionoptions as $pollquestionoption) {
                     $votoscandidato = 0;
-                    $opcao = $pollquestionoption->option;
+                    $opcao = $pollquestionoption->option . ' ' . $pollquestionoption->description;
                     if (strlen($opcao) >= 65) { $opcao = substr($opcao, 0, 65); }
                     $tamanho = 65 - strlen($opcao);
                     //$totalvotos = DB::select('SELECT COUNT(*) AS QTDE FROM user_vote_details WHERE poll_question_option_id = ' . $pollquestionoption->id . ';');
@@ -107,7 +107,7 @@ class AdminController extends Controller
                 $pollquestionoptions = PollQuestionOption::where('poll_question_id', $pollquestion->id)->orderby('id')->get();
                 foreach ($pollquestionoptions as $pollquestionoption) {
                     $votoscandidato = 0;
-                    $opcao = $pollquestionoption->option;
+                    $opcao = $pollquestionoption->option . ' ' . $pollquestionoption->description;
                     $totalvotos = DB::select('SELECT COUNT(*) AS QTDE FROM user_vote_details WHERE poll_question_option_id = ' . $pollquestionoption->id . ';');
                     $votoscandidato = $totalvotos[0]->QTDE;
                     if (strlen($opcao) >= 65) { $opcao = substr($opcao, 0, 65); }
