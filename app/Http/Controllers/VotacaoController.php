@@ -689,9 +689,20 @@ class VotacaoController extends Controller
                                 'description' => 'Atualizado na mesa ' . $mesa . ' o usuário: ' . $cpf . ' - ' . $nome . ', senha: ' . $senha,
                             ]);
 //echo 'USUÁRIO: ' . $cpf . ', senha: ' . $senha . '<br>';
-                            Mail::to($email)->send(new ImportacaoUsuarioEmail($user, $senha));
+                            try {
+                                Mail::to($email)->send(new ImportacaoUsuarioEmail($user, $senha));
+                            } catch (\Exception $e) {
+                                Log::create([
+                                    'user_id' => session('user_id'),
+                                    'code' => 'ERRO',
+                                    'ip' => session('ip'),
+                                    'description' => 'Erro ao enviar e-mail: ' . $e->getMessage(),
+                                ]);
+                            }
                             // Envio do SMS
+                            $celular = $user->mobile;
                             $celular = trim($celular);
+                            $celular = str_replace(['+55'], [''], $celular);
                             $celular = str_replace(['(', ')', '-'], ['', '', ''], $celular);
                             if (strlen($celular) == 11) {
                                 $mesa = '';
@@ -760,9 +771,20 @@ class VotacaoController extends Controller
                                 'description' => 'Criado usuário: ' . $cpf . ' - ' . $nome . ', senha: ' . $senha,
                             ]);
 //echo 'USUÁRIO: ' . $cpf . ', senha: ' . $senha . '<br>';
-                            Mail::to($email)->send(new ImportacaoUsuarioEmail($user, $senha));
+                            try {
+                                Mail::to($email)->send(new ImportacaoUsuarioEmail($user, $senha));
+                            } catch (\Exception $e) {
+                                Log::create([
+                                    'user_id' => session('user_id'),
+                                    'code' => 'ERRO',
+                                    'ip' => session('ip'),
+                                    'description' => 'Erro ao enviar e-mail: ' . $e->getMessage(),
+                                ]);
+                            }
                             // Envio do SMS
+                            $celular = $user->mobile;
                             $celular = trim($celular);
+                            $celular = str_replace(['+55'], [''], $celular);
                             $celular = str_replace(['(', ')', '-'], ['', '', ''], $celular);
                             if (strlen($celular) == 11) {
                                 $mesa = '';
@@ -1162,25 +1184,38 @@ class VotacaoController extends Controller
     {
         $user = User::find($request->user_id);
         $senha = $this->gerar_senha(5, false, true, true, false);
-        $user->password = bcrypt($senha);
-        $user->save();
-        Mail::to($user->email)->send(new NovaSenhaUsuarioEmail($user, $senha));
+//        $user->password = bcrypt($senha);
+//        $user->save();
         //LOG
         Log::create([
             'user_id' => session('user_id'),
-            'code' => 'UPLOAD',
+            'code' => 'ADM RESET',
             'ip' => session('ip'),
             'description' => 'Gerada nova senha de usuário: ' . $user->document . ' - ' . $user->name . ', senha: ' . $senha,
         ]);
+        try {
+            Mail::to($user->email)->send(new NovaSenhaUsuarioEmail($user, $senha));
+        } catch (\Exception $e) {
+            Log::create([
+                'user_id' => session('user_id'),
+                'code' => 'ERRO',
+                'ip' => session('ip'),
+                'description' => 'Erro ao enviar e-mail: ' . $e->getMessage(),
+            ]);
+        }
         // Envio do SMS
-        if (strlen($user->celular) == 11) {
+        $celular = $user->mobile;
+        $celular = trim($celular);
+        $celular = str_replace(['+55'], [''], $celular);
+        $celular = str_replace(['(', ')', '-'], ['', '', ''], $celular);
+        if (strlen($celular) == 11) {
             $mesa = '';
             if ($user->poll) {
                 $mesa = $user->poll->code;
             }
             $mensagem = urlencode("ELEICAO AFISVEC - endereço " . asset('/') . "eleicao/" . $mesa . " sua nova senha de acesso e: " . $senha);
             // concatena a url da api com a variável carregando o conteúdo da mensagem
-            $url_api = "https://www.iagentesms.com.br/webservices/http.php?metodo=envio&usuario=Afisvec&senha=Rapunzel5&celular=" . $user->celular . "&mensagem={$mensagem}";
+            $url_api = "https://www.iagentesms.com.br/webservices/http.php?metodo=envio&usuario=Afisvec&senha=Rapunzel5&celular=" . $celular . "&mensagem={$mensagem}";
             // realiza a requisição http passando os parâmetros informados
             $api_http = file_get_contents($url_api);
             // imprime o resultado da requisição
@@ -1212,7 +1247,6 @@ class VotacaoController extends Controller
         $senha = $this->gerar_senha(5, false, true, true, false);
         $user->password = bcrypt($senha);
         $user->save();
-        Mail::to($user->email)->send(new NovaSenhaUsuarioEmail($user, $senha));
         //LOG
         Log::create([
             'user_id' => session('user_id'),
@@ -1220,15 +1254,29 @@ class VotacaoController extends Controller
             'ip' => session('ip'),
             'description' => 'Gerada nova senha de usuário (COMISSÃO): ' . $user->document . ' - ' . $user->name . ', senha: ' . $senha,
         ]);
+        try {
+            Mail::to($user->email)->send(new NovaSenhaUsuarioEmail($user, $senha));
+        } catch (\Exception $e) {
+            Log::create([
+                'user_id' => session('user_id'),
+                'code' => 'ERRO',
+                'ip' => session('ip'),
+                'description' => 'Erro ao enviar e-mail: ' . $e->getMessage(),
+            ]);
+        }
         // Envio do SMS
-        if (strlen($user->celular) == 11) {
+        $celular = $user->mobile;
+        $celular = trim($celular);
+        $celular = str_replace(['+55'], [''], $celular);
+        $celular = str_replace(['(', ')', '-'], ['', '', ''], $celular);
+        if (strlen($celular) == 11) {
             $mesa = '';
             if ($user->poll) {
                 $mesa = $user->poll->code;
             }
             $mensagem = urlencode("ELEICAO AFISVEC - endereço " . asset('/') . "eleicao/" . $mesa . " sua nova senha de acesso e: " . $senha);
             // concatena a url da api com a variável carregando o conteúdo da mensagem
-            $url_api = "https://www.iagentesms.com.br/webservices/http.php?metodo=envio&usuario=Afisvec&senha=Rapunzel5&celular=" . $user->celular . "&mensagem={$mensagem}";
+            $url_api = "https://www.iagentesms.com.br/webservices/http.php?metodo=envio&usuario=Afisvec&senha=Rapunzel5&celular=" . $celular . "&mensagem={$mensagem}";
             // realiza a requisição http passando os parâmetros informados
             $api_http = file_get_contents($url_api);
             // imprime o resultado da requisição
@@ -1259,23 +1307,36 @@ class VotacaoController extends Controller
         $user = User::find($request->user_id);
         $user->enabled_until = date('Y-m-d H:i:s', strtotime('+6 minutes',strtotime(date('Y-m-d H:i:s'))));
         $user->save();
-        Mail::to($user->email)->send(new UsuarioLiberadoEmail($user));
         //LOG
         Log::create([
             'user_id' => session('user_id'),
-            'code' => 'UPLOAD',
+            'code' => 'LIBERAR',
             'ip' => session('ip'),
             'description' => 'Usuário liberado 5 minutos (COMISSÃO): ' . $user->document . ' - ' . $user->name,
         ]);
+        try {
+            Mail::to($user->email)->send(new UsuarioLiberadoEmail($user));
+        } catch (\Exception $e) {
+            Log::create([
+                'user_id' => session('user_id'),
+                'code' => 'ERRO',
+                'ip' => session('ip'),
+                'description' => 'Erro ao enviar e-mail: ' . $e->getMessage(),
+            ]);
+        }
         // Envio do SMS
-        if (strlen($user->celular) == 11) {
+        $celular = $user->mobile;
+        $celular = trim($celular);
+        $celular = str_replace(['+55'], [''], $celular);
+        $celular = str_replace(['(', ')', '-'], ['', '', ''], $celular);
+        if (strlen($celular) == 11) {
             $mesa = '';
             if ($user->poll) {
                 $mesa = $user->poll->code;
             }
             $mensagem = urlencode("ELEICAO AFISVEC - endereço " . asset('/') . "eleicao/" . $mesa . " usuario liberado (5 minutos)");
             // concatena a url da api com a variável carregando o conteúdo da mensagem
-            $url_api = "https://www.iagentesms.com.br/webservices/http.php?metodo=envio&usuario=Afisvec&senha=Rapunzel5&celular=" . $user->celular . "&mensagem={$mensagem}";
+            $url_api = "https://www.iagentesms.com.br/webservices/http.php?metodo=envio&usuario=Afisvec&senha=Rapunzel5&celular=" . $celular . "&mensagem={$mensagem}";
             // realiza a requisição http passando os parâmetros informados
             $api_http = file_get_contents($url_api);
             // imprime o resultado da requisição
@@ -1337,22 +1398,35 @@ class VotacaoController extends Controller
         $senha = $this->gerar_senha(5, false, true, true, false);
         $user->password = bcrypt($senha);
         $user->save();
-        Mail::to($user->email)->send(new NovaSenhaUsuarioEmail($user, $senha));
         //LOG
         Log::create([
             'code' => 'UPLOAD',
             'ip' => session('ip'),
             'description' => 'Gerada nova senha de usuário (RESET): ' . $user->document . ' - ' . $user->name . ', senha: ' . $senha,
         ]);
+        try {
+            Mail::to($user->email)->send(new NovaSenhaUsuarioEmail($user, $senha));
+        } catch (\Exception $e) {
+            Log::create([
+                'user_id' => session('user_id'),
+                'code' => 'ERRO',
+                'ip' => session('ip'),
+                'description' => 'Erro ao enviar e-mail: ' . $e->getMessage(),
+            ]);
+        }
         // Envio do SMS
-        if (strlen($user->celular) == 11) {
+        $celular = $user->mobile;
+        $celular = trim($celular);
+        $celular = str_replace(['+55'], [''], $celular);
+        $celular = str_replace(['(', ')', '-'], ['', '', ''], $celular);
+        if (strlen($celular) == 11) {
             $mesa = '';
             if ($user->poll) {
                 $mesa = $user->poll->code;
             }
             $mensagem = urlencode("ELEICAO AFISVEC - endereço " . asset('/') . "eleicao/" . $mesa . " sua nova senha de acesso e: " . $senha);
             // concatena a url da api com a variável carregando o conteúdo da mensagem
-            $url_api = "https://www.iagentesms.com.br/webservices/http.php?metodo=envio&usuario=Afisvec&senha=Rapunzel5&celular=" . $user->celular . "&mensagem={$mensagem}";
+            $url_api = "https://www.iagentesms.com.br/webservices/http.php?metodo=envio&usuario=Afisvec&senha=Rapunzel5&celular=" . $celular . "&mensagem={$mensagem}";
             // realiza a requisição http passando os parâmetros informados
             $api_http = file_get_contents($url_api);
             // imprime o resultado da requisição
