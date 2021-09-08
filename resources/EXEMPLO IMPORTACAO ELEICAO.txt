@@ -1,10 +1,4 @@
-POLL;2;Mesa1;Eleição 2021 - Mesa 1;2021-04-25;2021-05-31
-QUESTION;Passo 1;Membro da Mesa;1
-POLL;2;Mesa2;Eleição 2021 - Mesa 2;2021-04-25;2021-05-31
-QUESTION;Passo 1;Membro da Mesa;1
-POLL;2;Mesa3;Eleição 2021 - Mesa 3;2021-04-25;2021-05-31
-QUESTION;Passo 1;Membro da Mesa;1
-POLL;2;Mesa4;Eleição 2021 - Mesa 4;2021-04-25;2021-05-31
-QUESTION;Passo 1;Membro da Mesa;1
-POLL;2;Mesa5;Eleição 2021 - Mesa 5;2021-04-25;2021-05-31
-QUESTION;Passo 1;Membro da Mesa;1
+POLL;1;AF_TESTE_02;Alteração Estatutária;2021-08-31;2021-09-02 23:59
+QUESTION;Passo 1;Concorda com as Alterações Propostas;1
+OPTION;1;A;APROVO - Concordo com as alterações
+OPTION;2;R;REPROVO - Não Concordo com as alterações

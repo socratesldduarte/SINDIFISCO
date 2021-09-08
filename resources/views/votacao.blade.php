@@ -63,7 +63,7 @@
                                 @endif
                                 <div class="form-group">
                                     <?php
-                                    foreach ($pollquestion->pollquestionoptions()->where('order', '<>', 2)->where('order', '<>', 999)->orderby('order')->get() as $pollquestionoption) {
+                                    foreach ($pollquestion->pollquestionoptions()->where('order', '<>', 0)->where('order', '<>', 999)->orderby('order')->get() as $pollquestionoption) {
                                         if ( $pollquestion->selection_number == 1 ) {
                                     ?>
                                         <br><input type="radio" class="form-group" name="questao_{{ $pollquestion->id }}" value="{{ $pollquestionoption->id }}">&nbsp;{{ $pollquestionoption->option . ' - ' }} {!! $pollquestionoption->description !!}<br>

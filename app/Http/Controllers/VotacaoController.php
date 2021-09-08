@@ -406,7 +406,7 @@ class VotacaoController extends Controller
         return view('votacao', compact('poll', 'user'));
     }
 
-    public function administrador()
+    public function administrador(Request $request)
     {
         //VERIFICANDO SESSAO
         if (!session('administrator')) {
@@ -425,7 +425,11 @@ class VotacaoController extends Controller
             'ip' => session('ip'),
             'description' => 'Acesso à área administrativa',
         ]);
-        $usuarios = User::orderby('poll_id', 'ASC')->paginate(20);
+        if ($request->key <> '') {
+            $usuarios = User::where('name', 'LIKE', '%' . trim($request->key) . '%')->orderby('poll_id', 'ASC')->paginate(20);
+        } else {
+            $usuarios = User::orderby('poll_id', 'ASC')->paginate(20);
+        }
         $polls = Poll::with('pollquestions')->where('active', true)->get();
         return view('administrador', compact('usuarios', 'polls'));
     }
@@ -709,7 +713,7 @@ class VotacaoController extends Controller
                                 if ($user->poll) {
                                     $mesa = $user->poll->code;
                                 }
-                                $mensagem = urlencode("ELEICAO AFISVEC - endereço " . asset('/') . "eleicao/" . $mesa . " sua senha de acesso e: " . $senha);
+                                $mensagem = urlencode("VOTAÇÕES AFISVEC - endereço " . asset('/') . "op/" . $mesa . " sua senha de acesso e: " . $senha);
                                 // concatena a url da api com a variável carregando o conteúdo da mensagem
                                 $url_api = "https://www.iagentesms.com.br/webservices/http.php?metodo=envio&usuario=Afisvec&senha=Rapunzel5&celular=" . $celular . "&mensagem={$mensagem}";
                                 // realiza a requisição http passando os parâmetros informados
@@ -791,7 +795,7 @@ class VotacaoController extends Controller
                                 if ($user->poll) {
                                     $mesa = $user->poll->code;
                                 }
-                                $mensagem = urlencode("ELEICAO AFISVEC - endereço " . asset('/') . "eleicao/" . $mesa . " sua senha de acesso e: " . $senha);
+                                $mensagem = urlencode("VOTAÇÕES AFISVEC - endereço " . asset('/') . "op/" . $mesa . " sua senha de acesso e: " . $senha);
                                 // concatena a url da api com a variável carregando o conteúdo da mensagem
                                 $url_api = "https://www.iagentesms.com.br/webservices/http.php?metodo=envio&usuario=Afisvec&senha=Rapunzel5&celular=" . $celular . "&mensagem={$mensagem}";
                                 // realiza a requisição http passando os parâmetros informados
@@ -1184,8 +1188,8 @@ class VotacaoController extends Controller
     {
         $user = User::find($request->user_id);
         $senha = $this->gerar_senha(5, false, true, true, false);
-//        $user->password = bcrypt($senha);
-//        $user->save();
+        $user->password = bcrypt($senha);
+        $user->save();
         //LOG
         Log::create([
             'user_id' => session('user_id'),
@@ -1213,7 +1217,7 @@ class VotacaoController extends Controller
             if ($user->poll) {
                 $mesa = $user->poll->code;
             }
-            $mensagem = urlencode("ELEICAO AFISVEC - endereço " . asset('/') . "eleicao/" . $mesa . " sua nova senha de acesso e: " . $senha);
+            $mensagem = urlencode("VOTAÇÕES AFISVEC - endereço " . asset('/') . "op/" . $mesa . " sua nova senha de acesso e: " . $senha);
             // concatena a url da api com a variável carregando o conteúdo da mensagem
             $url_api = "https://www.iagentesms.com.br/webservices/http.php?metodo=envio&usuario=Afisvec&senha=Rapunzel5&celular=" . $celular . "&mensagem={$mensagem}";
             // realiza a requisição http passando os parâmetros informados
@@ -1274,7 +1278,7 @@ class VotacaoController extends Controller
             if ($user->poll) {
                 $mesa = $user->poll->code;
             }
-            $mensagem = urlencode("ELEICAO AFISVEC - endereço " . asset('/') . "eleicao/" . $mesa . " sua nova senha de acesso e: " . $senha);
+            $mensagem = urlencode("VOTAÇÕES AFISVEC - endereço " . asset('/') . "op/" . $mesa . " sua nova senha de acesso e: " . $senha);
             // concatena a url da api com a variável carregando o conteúdo da mensagem
             $url_api = "https://www.iagentesms.com.br/webservices/http.php?metodo=envio&usuario=Afisvec&senha=Rapunzel5&celular=" . $celular . "&mensagem={$mensagem}";
             // realiza a requisição http passando os parâmetros informados
@@ -1334,7 +1338,7 @@ class VotacaoController extends Controller
             if ($user->poll) {
                 $mesa = $user->poll->code;
             }
-            $mensagem = urlencode("ELEICAO AFISVEC - endereço " . asset('/') . "eleicao/" . $mesa . " usuario liberado (5 minutos)");
+            $mensagem = urlencode("VOTAÇÕES AFISVEC - endereço " . asset('/') . "op/" . $mesa . " usuario liberado (5 minutos)");
             // concatena a url da api com a variável carregando o conteúdo da mensagem
             $url_api = "https://www.iagentesms.com.br/webservices/http.php?metodo=envio&usuario=Afisvec&senha=Rapunzel5&celular=" . $celular . "&mensagem={$mensagem}";
             // realiza a requisição http passando os parâmetros informados
@@ -1424,7 +1428,7 @@ class VotacaoController extends Controller
             if ($user->poll) {
                 $mesa = $user->poll->code;
             }
-            $mensagem = urlencode("ELEICAO AFISVEC - endereço " . asset('/') . "eleicao/" . $mesa . " sua nova senha de acesso e: " . $senha);
+            $mensagem = urlencode("VOTAÇÕES AFISVEC - endereço " . asset('/') . "op/" . $mesa . " sua nova senha de acesso e: " . $senha);
             // concatena a url da api com a variável carregando o conteúdo da mensagem
             $url_api = "https://www.iagentesms.com.br/webservices/http.php?metodo=envio&usuario=Afisvec&senha=Rapunzel5&celular=" . $celular . "&mensagem={$mensagem}";
             // realiza a requisição http passando os parâmetros informados

@@ -16,7 +16,8 @@ use App\Http\Controllers\{VotacaoController,AdminController};
 |
 */
 Route::get('/', [VotacaoController::class, 'TelaInicial'])->name('/');
-Route::get('/eleicao/{codigo}', [VotacaoController::class, 'TelaInicial'])->name('eleicao.codigo');
+Route::get('/eleicao/{codigo}', [VotacaoController::class, 'TelaInicial']);
+Route::get('/op/{codigo}', [VotacaoController::class, 'TelaInicial'])->name('eleicao.codigo');
 Route::get('/inicio-adm', [VotacaoController::class, 'TelaInicialAdm'])->name('inicio-adm');
 Route::get('/inicio-com', [VotacaoController::class, 'TelaInicialCom'])->name('inicio-com');
 
