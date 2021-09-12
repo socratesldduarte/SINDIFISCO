@@ -1,4 +1,4 @@
-POLL;1;AF_TESTE_02;Alteração Estatutária;2021-08-31;2021-09-02 23:59
+POLL;1;ESTATUTO_09_2021;Alteração Estatutária;2021-09-09 14:00;2021-09-17 17:00
 QUESTION;Passo 1;Concorda com as Alterações Propostas;1
 OPTION;1;A;APROVO - Concordo com as alterações
 OPTION;2;R;REPROVO - Não Concordo com as alterações

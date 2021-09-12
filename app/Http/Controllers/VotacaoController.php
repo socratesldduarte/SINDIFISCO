@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Mail\NovaSenhaUsuarioEmail;
+use App\Mail\ReminderUsuarioEmail;
 use App\Mail\UsuarioLiberadoEmail;
 use App\Models\Poll;
 use App\Models\PollQuestion;
@@ -1453,4 +1454,97 @@ class VotacaoController extends Controller
         flash('Nova senha gerada e enviada ao usuário ' . $user->name . '!')->success();
         return redirect(route('/'));
     }
+
+    public function reminderAlteracaoEstatuto() {
+        //OBTER NÃO VOTANTES DA POLL 28
+        $usuarios = DB::select("SELECT U.id, U.name, U.email, U.mobile, uv.created_at FROM users U LEFT JOIN user_votes uv on U.id = uv.user_id WHERE U.poll_id = 28 AND U.id = 802 ORDER BY U.name;");
+//        $usuarios = DB::select("SELECT U.id, U.name, U.email, U.mobile, uv.created_at FROM users U LEFT JOIN user_votes uv on U.id = uv.user_id WHERE U.poll_id = 28 AND U.id <> 802 ORDER BY U.name;");
+        echo '<br><br>ENVIANDO REMINDERS PARA ' . count($usuarios) . ' ASSOCIADO(S)<br><br>';
+        ob_flush();
+        flush();
+        $Log = '';
+        //LOG
+        Log::create([
+            'user_id' => 1,
+            'code' => 'UPLOAD',
+            'ip' => session('ip'),
+            'description' => 'Iniciando processo de reminder de usuários para ' . count($usuarios) . ' associados',
+        ]);
+        $count = 0;
+        foreach ($usuarios as $usuario) {
+            $count++;
+            echo "{$count} - {$usuario->id}) {$usuario->name} [{$usuario->email}] / [{$usuario->mobile}]<br>";
+            Log::create([
+                'user_id' => $usuario->id,
+                'code' => 'REMINDER',
+                'ip' => session('ip'),
+                'description' => 'Iniciando reminder do usuário ' . $usuario->name,
+            ]);
+
+            //EMAIL
+            $email = trim($usuario->email);
+            if ($email != '') {
+                echo "TENTANDO ENVIAR E-MAIL PARA {$email}<br>";
+                Log::create([
+                    'user_id' => $usuario->id,
+                    'code' => 'REMINDER',
+                    'ip' => session('ip'),
+                    'description' => 'Iniciando envio de e-mail para o endereço ' . $email,
+                ]);
+                Mail::to($email)->send(new ReminderUsuarioEmail($usuario->name));
+                echo "E-MAIL ENVIADO<br>";
+                Log::create([
+                    'user_id' => $usuario->id,
+                    'code' => 'REMINDER',
+                    'ip' => session('ip'),
+                    'description' => 'E-mail enviado com sucesso para o endereço ' . $email,
+                ]);
+            }
+
+            //SMS
+            $celular = $usuario->mobile;
+            $celular = trim($celular);
+            $celular = str_replace(['+55'], [''], $celular);
+            $celular = str_replace(['(', ')', '-'], ['', '', ''], $celular);
+            if (strlen($celular) == 11) {
+                echo "TENTANDO ENVIAR SMS PARA {$celular}<br>";
+                Log::create([
+                    'user_id' => $usuario->id,
+                    'code' => 'REMINDER',
+                    'ip' => session('ip'),
+                    'description' => 'Iniciando envio de SMS para ' . $celular,
+                ]);
+                $mensagem = urlencode("Associado,
+Vote na alteração do Estatuto da AFISVEC.
+Acesse o sistema de votação pelo link https://bityli.com/MY2zs com seu CPF e a senha enviada anteriormente por email e celular ou utilize o \"Solicitar Nova Senha\".
+A alteração é muito importante para o associado e para a AFISVEC.");
+                // concatena a url da api com a variável carregando o conteúdo da mensagem
+                $url_api = "https://www.iagentesms.com.br/webservices/http.php?metodo=envio&usuario=Afisvec&senha=Rapunzel5&celular=" . $celular . "&mensagem={$mensagem}";
+                // realiza a requisição http passando os parâmetros informados
+                $api_http = file_get_contents($url_api);
+                // imprime o resultado da requisição
+                if ($api_http == 'OK') {
+                    echo "SMS ENVIADO<br>";
+                    Log::create([
+                        'user_id' => $usuario->id,
+                        'code' => 'REMINDER',
+                        'ip' => session('ip'),
+                        'description' => 'SMS enviado com sucesso para ' . $celular,
+                    ]);
+                } else {
+                    echo "SMS COM ERRO<br>";
+                    Log::create([
+                        'user_id' => $usuario->id,
+                        'code' => 'REMINDER',
+                        'ip' => session('ip'),
+                        'description' => 'Erro ao enviar SMS para ' . $celular . ': ' . $api_http,
+                    ]);
+                }
+            }
+        }
+dd('FINALIZADO');
+die();
+    }
+
+
 }
