@@ -36,6 +36,7 @@ Route::get('/administrador', [VotacaoController::class, 'Administrador'])->name(
 Route::get('/comissao', [VotacaoController::class, 'Comissao'])->name('comissao');
 
 Route::post('/uploadusuarios', [VotacaoController::class, 'UploadUsuarios'])->name('uploadusuarios');
+Route::post('/uploadusuariostemporarios', [VotacaoController::class, 'UploadTempUser'])->name('uploadusuariostemporarios');
 Route::post('/uploadeleicao', [VotacaoController::class, 'UploadEleicao'])->name('uploadeleicao');
 
 Route::post('/tornaradministrador', [VotacaoController::class, 'TornarAdministrador'])->name('tornaradministrador');

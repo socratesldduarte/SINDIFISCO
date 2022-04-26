@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <meta name="description" content="Sistema de Votações - Associação dos Auditores Fiscais da Receita Estadual - RS">
     <meta name="author" content="Sócrates Duarte - socrates@swge.com.br">
-    <title>Votação | AFISVEC - Área da Comissão</title>
+    <title>Votação | SINDIFISCO-RS - Área da Comissão</title>
 
     <!-- Bootstrap core CSS -->
     <link href="{{ asset("css/app.css") }}" rel="stylesheet">
@@ -16,7 +16,7 @@
 
 <div class="container-lg">
     <h1>&nbsp;</h1>
-    <img class="mb-4" src="{{ asset("img/AFISVEC.png") }}" alt="">
+    <img class="mb-4" src="{{ asset("img/sindifisco.png") }}" alt="">
     <h1 class="h3 mb-3 font-weight-normal">Usuários Cadastrados</h1>
     <form name="frm_Acoes" id="frm_Acoes" method="post">
         @csrf

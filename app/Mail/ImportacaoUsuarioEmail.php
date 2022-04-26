@@ -34,7 +34,7 @@ class ImportacaoUsuarioEmail extends Mailable
     public function build()
     {
         return $this
-            ->subject('Novo usuário no sistema de votações AFISVEC')
+            ->subject('Novo usuário no sistema de votações SINDIFISCO-RS')
             ->view('emails.importacaousuario')
             ->with(['user' => $this->user, 'senha' => $this->senha]);
     }

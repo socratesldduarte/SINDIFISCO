@@ -34,7 +34,7 @@ class NovaSenhaUsuarioEmail extends Mailable
     public function build()
     {
         return $this
-            ->subject('Nova senha para o sistema de eleições AFISVEC')
+            ->subject('Nova senha para o sistema de votações SINDIFISCO-RS')
             ->view('emails.novasenhausuario')
             ->with(['user' => $this->user, 'senha' => $this->senha]);
     }

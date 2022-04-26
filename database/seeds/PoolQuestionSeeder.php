@@ -15,39 +15,15 @@ class PoolQuestionSeeder extends Seeder
             [
                 'poll_id' => 1,
                 'question' => 'Passo 1',
-                'description' => 'Membro da Mesa',
+                'description' => 'Diretoria Executiva e Delegados Representantes',
                 'selection_number' => 1,
             ]
         );
         \DB::table('poll_questions')->insert(
             [
-                'poll_id' => 2,
-                'question' => 'Passo 1',
-                'description' => 'Membro da Mesa',
-                'selection_number' => 1,
-            ]
-        );
-        \DB::table('poll_questions')->insert(
-            [
-                'poll_id' => 3,
-                'question' => 'Passo 1',
-                'description' => 'Membro da Mesa',
-                'selection_number' => 1,
-            ]
-        );
-        \DB::table('poll_questions')->insert(
-            [
-                'poll_id' => 4,
-                'question' => 'Passo 1',
-                'description' => 'Membro da Mesa',
-                'selection_number' => 1,
-            ]
-        );
-        \DB::table('poll_questions')->insert(
-            [
-                'poll_id' => 5,
-                'question' => 'Passo 1',
-                'description' => 'Membro da Mesa',
+                'poll_id' => 1,
+                'question' => 'Passo 2',
+                'description' => 'Conselheiro Fiscal',
                 'selection_number' => 1,
             ]
         );

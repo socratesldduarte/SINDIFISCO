@@ -37,7 +37,7 @@ class AdminController extends Controller
             $created_at = date_create($poll->start->format('Y-m-d H:i:s'));
             $second = random_int ( 0 , 30);
             $created_at = date_add($created_at, date_interval_create_from_date_string($second . " secs"));
-            $content = '<div align="center"><img src="https://afisvec.org.br/eleicoes/public/img/AFISVEC.png"></div>' .
+            $content = '<div align="center"><img src="{{ asset("img/sindifisco.png") }}"></div>' .
                 '<h2 style="text-align: center">ZERÉSIMA<br>'.
                 $poll->name . '</h2>';
             //QUESTOES
@@ -95,7 +95,7 @@ class AdminController extends Controller
         $boletimapuracao = Document::where('poll_id', $poll_id)->where('type', 'BOLETIMAPURACAO')->first();
         if (empty($boletimapuracao)) {
             $hash = md5(uniqid(rand(), true));
-            $content = '<div align="center"><img src="https://afisvec.org.br/eleicoes/public/img/AFISVEC.png"></div>' .
+            $content = '<div align="center"><img src="{{ asset("img/sindifisco.png") }}"></div>' .
                 '<h2 style="text-align: center">BOLETIM DE APURAÇÃO<br>'.
                 $poll->name . '</h2>';
             //QUESTOES

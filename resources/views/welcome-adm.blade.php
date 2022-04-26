@@ -9,7 +9,7 @@ session(['poll_id' => '1']);
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <meta name="description" content="Sistema de Votações - Associação dos Auditores Fiscais da Receita Estadual - RS">
     <meta name="author" content="Sócrates Duarte - socrates@swge.com.br">
-    <title>Votação | AFISVEC</title>
+    <title>Votação | SINDIFISCO-RS</title>
 
     <!-- Bootstrap core CSS -->
     <link href="{{ asset("css/app.css") }}" rel="stylesheet">
@@ -34,7 +34,7 @@ session(['poll_id' => '1']);
 <form class="form-signin" method="post" action="{{ route('login-administrador') }}">
     @csrf
     <h1>&nbsp;</h1>
-    <img class="mb-4" src="{{ asset("img/AFISVEC.png") }}" alt="">
+    <img class="mb-4" src="{{ asset("img/sindifisco.png") }}" alt="">
     <h1 class="h3 mb-3 font-weight-normal">Faça o login para iniciar<br>Área Administrativa</h1>
 
     <div id="flashMessage">
@@ -48,7 +48,7 @@ session(['poll_id' => '1']);
     <input type="password" name="senha" id="senha" class="form-control" placeholder="Senha" required maxlength="20">
 
     <button class="btn btn-lg btn-primary btn-block" type="submit">Fazer Login</button>
-    <p class="mt-5 mb-3 text-muted">&copy; 2021- <a href="https://afisvec.org.br/" target="_blank">AFISVEC</a></p>
+    <p class="mt-5 mb-3 text-muted">&copy; 2022- <a href="https://www.sindifisco-rs.org.br/" target="_blank">SINDIFISCO-RS</a></p>
 </form>
 <script src="{{ asset("js/jquery.js") }}"></script>
 <script src="{{ asset("js/bootstrap.bundle.js") }}"></script>

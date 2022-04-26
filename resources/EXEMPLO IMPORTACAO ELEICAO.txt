@@ -1,4 +1,11 @@
-POLL;1;ESTATUTO_09_2021;Alteração Estatutária;2021-09-09 14:00;2021-09-17 17:00
-QUESTION;Passo 1;Concorda com as Alterações Propostas;1
-OPTION;1;A;APROVO - Concordo com as alterações
-OPTION;2;R;REPROVO - Não Concordo com as alterações
+POLL;1;SINDIFISCO-RS-2022;Eleição Diretoria SINDIFISCO-RS 2022;2022-04-14 20:00;2022-04-21 21:00
+QUESTION;Passo 1;Diretoria Executiva e Delegados Representantes;1
+OPTION;1;CHAPA 01;<strong>Diretoria Executiva</strong><br>Presidente: ALTEMIR FELTRIN DA SILVA<br>Vice-Presidente: CHRISTIAN JESUS SILVA DE AZEVEDO<br>Diretor de Políticas e Ações Sindicais: CELSO MALHANI DE SOUZA<br>Diretor Administrativo: PAULO RICARDO MÄHLER<br>Diretor Financeiro: JORGE RITTER DE ABREU<br>Diretor de Relações Parlamentares e Institucionais: JOSÉ EDUARDO SESTARI ARGENTON JASNIEVICZ<br>Diretor de Assuntos Jurídicos e Previdenciários: ADEMAR PETRY<br>Diretor de Assuntos Técnicos: LUCIANO BARBOZA GARCIA<br>Diretor de Comunicação e Integração Social: ERONI IZAIAS NUMER<br>Diretor de Assuntos dos Aposentados e Pensionistas: SILVIA MARIA BENEDETTI TEIXEIRA<br><br><strong>Delegados Representantes</strong><br>I – IVANI BEATRIZ MULLER<br>II – GILBERTO SANTINI PROCATI
+QUESTION;Passo 2;Conselheiro Fiscal;1
+OPTION;1;I;DELMIRIO BRANDT DE SOUZA
+OPTION;2;II;DIEGO DEGRAZIA DA SILVEIRA
+OPTION;3;III;DONATO LUIZ HUBNER
+OPTION;4;IV;SALOMÃO ALBERTO LEIZER
+OPTION;5;V;SIRLEI TERESINHA WALENCIUK
+OPTION;6;VI;SUSANA FAGUNDES GARCIA
+OPTION;7;VII;UBIRAJARA NOGUEIRA DA GAMA MEDINA

@@ -21,4 +21,4 @@ mix.js('resources/js/app.js', 'public/js')
     .copy('resources/js/bootstrap.bundle.js', 'public/js/bootstrap.bundle.js')
     .copy('resources/js/jquery.smartWizard.js', 'public/js/jquery.smartWizard.js')
     .copy('resources/js/bootstrap-session-timeout.js', 'public/js/bootstrap-session-timeout.js')
-    .copy('resources/AFISVEC.png', 'public/img/AFISVEC.png');
+    .copy('resources/sindifisco.png', 'public/img/sindifisco.png');

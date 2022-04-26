@@ -23,4 +23,8 @@ class User extends Model
     public function poll() {
         return $this->belongsTo(Poll::class, 'poll_id');
     }
+
+    public function temp_user() {
+        return $this->belongsTo(TempUser::class, 'user_id');
+    }
 }

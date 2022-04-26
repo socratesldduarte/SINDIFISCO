@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <meta name="description" content="Sistema de Votações - Associação dos Auditores Fiscais da Receita Estadual - RS">
     <meta name="author" content="Sócrates Duarte - socrates@swge.com.br">
-    <title>Votação | AFISVEC</title>
+    <title>Votação | SINDIFISCO-RS</title>
 
     <!-- Bootstrap core CSS -->
     <link href="{{ asset("css/app.css") }}" rel="stylesheet">
@@ -20,7 +20,7 @@
     <input type="hidden" name="votacao_user_id" value="{{ session('votacao_user_id') }}">
     @csrf
     <h1> </h1>
-    <img class="mb-4" src="{{ asset("img/AFISVEC.png") }}" alt="">
+    <img class="mb-4" src="{{ asset("img/sindifisco.png") }}" alt="">
     <h1 class="h3 mb-3 font-weight-normal">{{ $poll->name }}</h1>
     <h2 class="h3 mb-3 font-weight-normal">Eleitor: {{ $user->name }}</h2>
     <div class="container">

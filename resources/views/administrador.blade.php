@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <meta name="description" content="Sistema de Votações - Associação dos Auditores Fiscais da Receita Estadual - RS">
     <meta name="author" content="Sócrates Duarte - socrates@swge.com.br">
-    <title>Votação | AFISVEC - Área Administrativa</title>
+    <title>Votação | SINDIFISCO-RS - Área Administrativa</title>
 
     <!-- Bootstrap core CSS -->
     <link href="{{ asset("css/app.css") }}" rel="stylesheet">
@@ -16,7 +16,7 @@
 
 <div class="container-lg">
     <h1>&nbsp;</h1>
-    <img class="mb-4" src="{{ asset("img/AFISVEC.png") }}" alt="">
+    <img class="mb-4" src="{{ asset("img/sindifisco.png") }}" alt="">
     <h1 class="h3 mb-3 font-weight-normal">Usuários Cadastrados</h1>
     <form name="frm_Acoes" id="frm_Acoes" method="post">
         @csrf
@@ -61,17 +61,28 @@
             <div class="row">
                 {{ $usuarios->links() }}
             </div>
-            <form action="{{ route('uploadusuarios') }}" method="post" enctype="multipart/form-data" class="form-group" onsubmit="return f_ConfirmaUsuario();">
-            @csrf
-            <div class="row">
-                <div class="col-9">
-                    <input type="file" name="csv" id="csv" class="form-control">
+            <form action="{{ route('uploadusuariostemporarios') }}" method="post" enctype="multipart/form-data" class="form-group" onsubmit="return f_ConfirmaUsuarioTemporario();">
+                @csrf
+                <div class="row">
+                    <div class="col-9">
+                        <input type="file" name="csvtemporario" id="csvtemporario" class="form-control">
+                    </div>
+                    <div class="col-3">
+                        <button type="submit" class="btn btn-group btn-warning">IMPORTAR USUÁRIOS</button>
+                    </div>
                 </div>
-                <div class="col-3">
-                    <button type="submit" class="btn btn-group btn-warning">CRIAR USUÁRIOS</button>
-                </div>
-            </div>
             </form>
+{{--            <form action="{{ route('uploadusuarios') }}" method="post" enctype="multipart/form-data" class="form-group" onsubmit="return f_ConfirmaUsuario();">--}}
+{{--                @csrf--}}
+{{--                <div class="row">--}}
+{{--                    <div class="col-9">--}}
+{{--                        <input type="file" name="csv" id="csv" class="form-control">--}}
+{{--                    </div>--}}
+{{--                    <div class="col-3">--}}
+{{--                        <button type="submit" class="btn btn-group btn-warning">CRIAR USUÁRIOS</button>--}}
+{{--                    </div>--}}
+{{--                </div>--}}
+{{--            </form>--}}
         </div>
     </div>
     <h1 class="h3 mb-3 font-weight-normal">Eleições Ativas</h1>
@@ -166,6 +177,17 @@
 
     function f_ConfirmaUsuario() {
         if (document.getElementById('csv').files.length == 0) {
+            alert('Não foi selecionado arquivo de usuários.\nPor favor verifique.');
+            return false;
+        }
+        if (confirm('Confirma a importação de usuários?')) {
+            return true;
+        }
+        return false;
+    }
+
+    function f_ConfirmaUsuarioTemporario() {
+        if (document.getElementById('csvtemporario').files.length == 0) {
             alert('Não foi selecionado arquivo de usuários.\nPor favor verifique.');
             return false;
         }

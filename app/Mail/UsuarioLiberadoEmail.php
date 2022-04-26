@@ -32,7 +32,7 @@ class UsuarioLiberadoEmail extends Mailable
     public function build()
     {
         return $this
-            ->subject('Usuário liberado no sistema de eleições AFISVEC por 5 minutos')
+            ->subject('Usuário liberado no sistema de eleições SINDIFISCO-RS por 5 minutos')
             ->view('emails.usuarioliberado')
             ->with(['user' => $this->user]);
     }

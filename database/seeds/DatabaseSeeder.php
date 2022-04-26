@@ -13,12 +13,7 @@ class DatabaseSeeder extends Seeder
     {
         \DB::table('poll_types')->insert(
             [
-                'name' => 'Eleição Tradicional AFISVEC',
-            ]
-        );
-        \DB::table('poll_types')->insert(
-            [
-                'name' => 'Eleição Tipo Mesa AFISVEC (candidatos são os próprios eleitores)',
+                'name' => 'Eleição SINDIFISCO',
             ]
         );
 

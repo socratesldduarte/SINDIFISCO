@@ -8,6 +8,7 @@ use App\Mail\UsuarioLiberadoEmail;
 use App\Models\Poll;
 use App\Models\PollQuestion;
 use App\Models\PollQuestionOption;
+use App\Models\TempUser;
 use App\Models\User;
 use App\Models\UserVote;
 use App\Models\UserVoteDetail;
@@ -72,6 +73,10 @@ class VotacaoController extends Controller
             session(['poll_id' => $poll->id]);
         } else {
             session(['poll_id' => '0']);
+        }
+        if (count($polls) === 1) {
+            $poll = $polls->first();
+            session(['poll_id' => $poll->id]);
         }
         //VOTACAO
         return view('welcome', compact('poll', 'polls'));
@@ -714,7 +719,7 @@ class VotacaoController extends Controller
                                 if ($user->poll) {
                                     $mesa = $user->poll->code;
                                 }
-                                $mensagem = urlencode("VOTAÇÕES AFISVEC - endereço " . asset('/') . "op/" . $mesa . " sua senha de acesso e: " . $senha);
+                                $mensagem = urlencode("VOTAÇÕES SINDIFISCOP-RS - endereço " . asset('/') . "op/" . $mesa . " sua senha de acesso e: " . $senha);
                                 // concatena a url da api com a variável carregando o conteúdo da mensagem
                                 $url_api = "https://www.iagentesms.com.br/webservices/http.php?metodo=envio&usuario=Afisvec&senha=Rapunzel5&celular=" . $celular . "&mensagem={$mensagem}";
                                 // realiza a requisição http passando os parâmetros informados
@@ -796,7 +801,7 @@ class VotacaoController extends Controller
                                 if ($user->poll) {
                                     $mesa = $user->poll->code;
                                 }
-                                $mensagem = urlencode("VOTAÇÕES AFISVEC - endereço " . asset('/') . "op/" . $mesa . " sua senha de acesso e: " . $senha);
+                                $mensagem = urlencode("VOTAÇÕES SINDIFISCO-RS - endereço " . asset('/') . "op/" . $mesa . " sua senha de acesso e: " . $senha);
                                 // concatena a url da api com a variável carregando o conteúdo da mensagem
                                 $url_api = "https://www.iagentesms.com.br/webservices/http.php?metodo=envio&usuario=Afisvec&senha=Rapunzel5&celular=" . $celular . "&mensagem={$mensagem}";
                                 // realiza a requisição http passando os parâmetros informados
@@ -1218,7 +1223,7 @@ class VotacaoController extends Controller
             if ($user->poll) {
                 $mesa = $user->poll->code;
             }
-            $mensagem = urlencode("VOTAÇÕES AFISVEC - endereço " . asset('/') . "op/" . $mesa . " sua nova senha de acesso e: " . $senha);
+            $mensagem = urlencode("VOTAÇÕES SINDIFISCO-RS - endereço " . asset('/') . "op/" . $mesa . " sua nova senha de acesso e: " . $senha);
             // concatena a url da api com a variável carregando o conteúdo da mensagem
             $url_api = "https://www.iagentesms.com.br/webservices/http.php?metodo=envio&usuario=Afisvec&senha=Rapunzel5&celular=" . $celular . "&mensagem={$mensagem}";
             // realiza a requisição http passando os parâmetros informados
@@ -1279,7 +1284,7 @@ class VotacaoController extends Controller
             if ($user->poll) {
                 $mesa = $user->poll->code;
             }
-            $mensagem = urlencode("VOTAÇÕES AFISVEC - endereço " . asset('/') . "op/" . $mesa . " sua nova senha de acesso e: " . $senha);
+            $mensagem = urlencode("VOTAÇÕES SINDIFISCO-RS - endereço " . asset('/') . "op/" . $mesa . " sua nova senha de acesso e: " . $senha);
             // concatena a url da api com a variável carregando o conteúdo da mensagem
             $url_api = "https://www.iagentesms.com.br/webservices/http.php?metodo=envio&usuario=Afisvec&senha=Rapunzel5&celular=" . $celular . "&mensagem={$mensagem}";
             // realiza a requisição http passando os parâmetros informados
@@ -1339,7 +1344,7 @@ class VotacaoController extends Controller
             if ($user->poll) {
                 $mesa = $user->poll->code;
             }
-            $mensagem = urlencode("VOTAÇÕES AFISVEC - endereço " . asset('/') . "op/" . $mesa . " usuario liberado (5 minutos)");
+            $mensagem = urlencode("VOTAÇÕES SINDIFISCO-RS - endereço " . asset('/') . "op/" . $mesa . " usuario liberado (5 minutos)");
             // concatena a url da api com a variável carregando o conteúdo da mensagem
             $url_api = "https://www.iagentesms.com.br/webservices/http.php?metodo=envio&usuario=Afisvec&senha=Rapunzel5&celular=" . $celular . "&mensagem={$mensagem}";
             // realiza a requisição http passando os parâmetros informados
@@ -1429,7 +1434,7 @@ class VotacaoController extends Controller
             if ($user->poll) {
                 $mesa = $user->poll->code;
             }
-            $mensagem = urlencode("VOTAÇÕES AFISVEC - endereço " . asset('/') . "op/" . $mesa . " sua nova senha de acesso e: " . $senha);
+            $mensagem = urlencode("VOTAÇÕES SINDIFISCO-RS - endereço " . asset('/') . "op/" . $mesa . " sua nova senha de acesso e: " . $senha);
             // concatena a url da api com a variável carregando o conteúdo da mensagem
             $url_api = "https://www.iagentesms.com.br/webservices/http.php?metodo=envio&usuario=Afisvec&senha=Rapunzel5&celular=" . $celular . "&mensagem={$mensagem}";
             // realiza a requisição http passando os parâmetros informados
@@ -1546,5 +1551,126 @@ dd('FINALIZADO');
 die();
     }
 
+    public function UploadTempUser(Request $request)
+    {
+        //SALVAR O ARQUIVO
+        $arquivo = $request->file('csvtemporario')->store('usuarios', 'public');
+
+        //PERCORRER, GRAVANDO USUÁRIOS
+        $fileAberto = fopen(storage_path() . '/app/public/' . $arquivo, "r");
+        echo '<br><br>PROCESSANDO ARQUIVO: ' . $arquivo . '<br><br>';
+        ob_flush();
+        flush();
+
+        $intContadorInterno = 0;
+        $comando = '';
+        $intCount = 0;
+        $qtdeLinhasArquivo = 0;
+
+        $qtdeerros = 0;
+        $qtdeLinhas = 0;
+        $Log = '';
+        //LOG
+        Log::create([
+            'user_id' => session('user_id'),
+            'code' => 'UPLOAD_TEMP_USER',
+            'ip' => session('ip'),
+            'description' => 'Iniciando processo de upload de usuários temporários',
+        ]);
+        while(!feof($fileAberto)) {
+            $linha = trim(fgets($fileAberto));
+            if ($qtdeLinhasArquivo <= 0) {
+                $qtdeLinhasArquivo = 1;
+            } else
+            {
+                //LOG
+                Log::create([
+                    'user_id' => session('user_id'),
+                    'code' => 'UPLOAD_TEMP_USER',
+                    'ip' => session('ip'),
+                    'description' => 'Processando linha: ' . $linha,
+                ]);
+                if ($linha != '') {
+                    $intContadorInterno = $intContadorInterno + 1;
+                    $qtdeLinhasArquivo = $qtdeLinhasArquivo + 1;
+                    $qtdeLinhas = $qtdeLinhas + 1;
+
+                    $linhaarray = explode(';', $linha);
+
+                    if (count($linhaarray) != 17 ) {
+                        $Log = $Log . 'Erro ao processar registro. Linha: ' . $linha . '<br>';
+                        //LOG
+                        Log::create([
+                            'user_id' => session('user_id'),
+                            'code' => 'ERRO',
+                            'ip' => session('ip'),
+                            'description' => 'Erro ao processar registro. Linha inválida: ' . $linha . '. Esperadas 17 colunas, encontrado: ' . count($linhaarray),
+                        ]);
+                        break;
+                    }
+                    $name = $linhaarray[0];
+                    $document = str_replace(['.', '-'], ['', ''], $linhaarray[1]);
+                    $code_area = $linhaarray[2];
+                    $phone = $linhaarray[3];
+//                    $phone2 = $linhaarray[4];
+//                    $phone2_desc = $linhaarray[5];
+//                    $phone3 = $linhaarray[6];
+                    $address_type = $linhaarray[4];
+                    $address = $linhaarray[5];
+                    $address_number = $linhaarray[6];
+                    $address_line2 = $linhaarray[7];
+                    $pobox = $linhaarray[8];
+                    $district = $linhaarray[9];
+                    $zipcode = $linhaarray[10];
+                    $city = $linhaarray[11];
+                    $province = $linhaarray[12];
+                    $email = $linhaarray[13];
+                    $email2 = $linhaarray[14];
+                    $birthday = $linhaarray[15];
+                    if (strlen($birthday) == 10) {
+                        $birthday = substr($birthday, 6, 4) . '-' . substr($birthday, 3, 2) . '-' . substr($birthday, 0, 2);
+                    }
+//                    $gender = $linhaarray[19];
+                    $situation = $linhaarray[16];
+                    $password_plain = $this->gerar_senha(5, false, true, true, false);
+                    $password_bcrypt = bcrypt($password_plain);
+                    $tempUser = TempUser::create([
+                        'document' => $document,
+                        'name' => $name,
+                        'birthday' => $birthday,
+                        'code_area' => $code_area,
+                        'phone' => $phone,
+                        'phone2' => '',
+                        'phone2_desc' => '',
+                        'phone3' => '',
+                        'address_type' => $address_type,
+                        'address' => $address,
+                        'address_number' => $address_number,
+                        'address_line2' => $address_line2,
+                        'pobox' => $pobox,
+                        'district' => $district,
+                        'zipcode' => $zipcode,
+                        'city' => $city,
+                        'province' => $province,
+                        'email' => $email,
+                        'email2' => $email2,
+                        'gender' => '',
+                        'situation' => $situation,
+                        'password_plain' => $password_plain,
+                        'password_bcrypt' => $password_bcrypt,
+                    ]);
+                }
+            }
+        }
+        DB::connection('mysql')->commit();
+        //LOG
+        Log::create([
+            'user_id' => session('user_id'),
+            'code' => 'UPLOAD_TEMP_USER',
+            'ip' => session('ip'),
+            'description' => 'Finalizando processo de upload de usuários temporários',
+        ]);
+        return redirect(route('administrador'));
+    }
 
 }
