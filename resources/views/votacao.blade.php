@@ -66,12 +66,30 @@
                                     foreach ($pollquestion->pollquestionoptions()->where('order', '<>', 0)->where('order', '<>', 999)->orderby('order')->get() as $pollquestionoption) {
                                         if ( $pollquestion->selection_number == 1 ) {
                                     ?>
-                                        <br><input type="radio" class="form-group" name="questao_{{ $pollquestion->id }}" value="{{ $pollquestionoption->id }}">&nbsp;{{ $pollquestionoption->option . ' - ' }} {!! $pollquestionoption->description !!}<br>
+                                    <br><input type="radio" class="form-group" name="questao_{{ $pollquestion->id }}" value="{{ $pollquestionoption->id }}">&nbsp;<label for="label_{{ $pollquestionoption->id }}">{{ $pollquestionoption->option }}</label> - {!! $pollquestionoption->description !!}<br>
                                     <?php
                                         } else {
                                     ?>
-                                        <br><input type="checkbox" class="form-group" name="questao_{{ $pollquestion->id }}[]" id="questao_{{$intCount - 1}}" value="{{ $pollquestionoption->id }}">&nbsp;{{ $pollquestionoption->option . ' - ' }} {!! $pollquestionoption->description !!}<br>
+                                        <br><input type="checkbox" class="form-group" name="questao_{{ $pollquestion->id }}[]" id="questao_{{$intCount - 1}}" value="{{ $pollquestionoption->id }}">&nbsp;<label for="label_{{ $pollquestionoption->id }}"></label>{{ $pollquestionoption->option }} - {!! $pollquestionoption->description !!}<br>
                                     <?php
+                                        }
+                                    }
+                                    $pollquestionoptionBranco = $pollquestion->pollquestionoptions()->where('poll_question_id', $pollquestion->id)->where('order', 0)->first();
+                                    if ($pollquestionoptionBranco) {
+                                        if ( $pollquestion->selection_number == 1 ) {
+                                            if ($pollquestionoptionBranco) {
+                                    ?>
+                                        <br><input type="radio" class="form-group" name="questao_{{ $pollquestion->id }}" value="{{ $pollquestionoptionBranco->id }}">&nbsp;<label for="label_{{ $pollquestionoptionBranco->id }}">{{ $pollquestionoptionBranco->option }}</label> - {!! $pollquestionoptionBranco->description !!}<br>
+                                    <?php
+                                            }
+                                        } else {
+                                            if ($pollquestionoptionBranco) {
+                                                for ($i = 1; $i <= $pollquestion->selection_number; $i++) {
+                                            ?>
+                                        <input type="checkbox" class="form-group" name="questao_{{ $pollquestion->id }}[]" id="questao_{{$intCount - 1}}" value="{{ $pollquestionoptionBranco->id }}">&nbsp;<label for="label_{{ $pollquestionoptionBranco->id }}">{{ $pollquestionoptionBranco->option }}</label> - {!! $pollquestionoptionBranco->description !!}&nbsp;{{ $i }}º Voto<br><br>
+                                            <?php
+                                                }
+                                            }
                                         }
                                     }
                                     $pollquestionoptionNulo = $pollquestion->pollquestionoptions()->where('poll_question_id', $pollquestion->id)->where('order', 999)->first();
@@ -79,14 +97,14 @@
                                         if ( $pollquestion->selection_number == 1 ) {
                                             if ($pollquestionoptionNulo) {
                                     ?>
-                                        <br><input type="radio" class="form-group" name="questao_{{ $pollquestion->id }}" value="{{ $pollquestionoptionNulo->id }}">&nbsp;{{ $pollquestionoptionNulo->option . ' - ' }} {!! $pollquestionoptionNulo->description !!}<br>
+                                        <br><input type="radio" class="form-group" name="questao_{{ $pollquestion->id }}" value="{{ $pollquestionoptionNulo->id }}">&nbsp;<label for="label_{{ $pollquestionoptionNulo->id }}">{{ $pollquestionoptionNulo->option }}</label> - {!! $pollquestionoptionNulo->description !!}<br>
                                     <?php
                                             }
                                         } else {
                                             if ($pollquestionoptionNulo) {
                                                 for ($i = 1; $i <= $pollquestion->selection_number; $i++) {
                                     ?>
-                                        <input type="checkbox" class="form-group" name="questao_{{ $pollquestion->id }}[]" id="questao_{{$intCount - 1}}" value="{{ $pollquestionoptionNulo->id }}">&nbsp;{{ $pollquestionoptionNulo->option . ' - ' }} {!! $pollquestionoptionNulo->description !!}&nbsp;{{ $i }}º Voto<br><br>
+                                        <input type="checkbox" class="form-group" name="questao_{{ $pollquestion->id }}[]" id="questao_{{$intCount - 1}}" value="{{ $pollquestionoptionNulo->id }}">&nbsp;<label for="label_{{ $pollquestionoptionNulo->id }}">{{ $pollquestionoptionNulo->option }}</label> - {!! $pollquestionoptionNulo->description !!}&nbsp;{{ $i }}º Voto<br><br>
                                     <?php
                                                 }
                                             }
@@ -121,12 +139,13 @@
 
 <script type="text/javascript">
     $('#smartwizard').smartWizard({
-        backButtonSupport: false, // Enable the back button support
+        backButtonSupport: true, // Enable the back button support
         lang: {  // Language variables
             next: 'Próximo',
+            previous: 'Anterior',
         },
         toolbarSettings: {
-            showPreviousButton: false, // show/hide a Previous button
+            showPreviousButton: true, // show/hide a Previous button
         },
         anchorSettings: {
             anchorClickable: false, // Enable/Disable anchor navigation
@@ -153,24 +172,37 @@
                     $qtde = $qtde + 1;
                 });
                 if ($qtde < $("input[name='selecao_" + (stepNumber + 1) + "']").val()) {
-                    return confirm("Confima o voto selecionado nessa categoria?\n\nCOMO VOCÊ SELECIONOU MENOS OPÇÕES DO QUE O PERMITIDO, OS VOTOS ADICIONAIS SERÃO CONSIDERADOS BRANCOS!\n\nAPÓS CONFIRMAR O VOTO EM UMA CATEGORIA, NÃO SERÁ MAIS POSSÍVEL ALTERÁ-LO!!!");
+                    alert("ATENÇÃO!!! VOCÊ SELECIONOU MENOS ITENS DO QUE O NECESSÁRIO NESSA CATEGORIA.\n\nPOR FAVOR VERIFIQUE E CORRIJA!!!");
+                    return false;
                 }
                 else if ($qtde == $("input[name='selecao_" + (stepNumber + 1) + "']").val()) {
-                    return confirm("Confima o voto selecionado nessa categoria?\n\nAPÓS CONFIRMAR O VOTO EM UMA CATEGORIA, NÃO SERÁ MAIS POSSÍVEL ALTERÁ-LO!!!");
+                    return confirm("Confima o voto selecionado nessa categoria?");
                 } else {
                     alert("ATENÇÃO!!! VOCÊ SELECIONOU MAIS ITENS DO QUE O PERMITIDO NESSA CATEGORIA.\n\nPOR FAVOR VERIFIQUE E CORRIJA!!!");
                     return false;
                 }
             } else {
-                return confirm("Confima o voto selecionado nessa categoria?\n\nSE NÃO FOR SELECIONADA NENHUMA OPÇÃO, O VOTO SERÁ CONSIDERADO BRANCO NESTA CATEGORIA!\n\nAPÓS CONFIRMAR O VOTO EM UMA CATEGORIA, NÃO SERÁ MAIS POSSÍVEL ALTERÁ-LO!!!");
+                if (typeof $("input[type='radio'][name='questao_" + (stepNumber + 1) + "']:checked").val() === 'undefined') {
+                    alert("ATENÇÃO!!! VOCÊ NÃO SELECIONOU NENHUM ITEM NESSA CATEGORIA.\n\nPOR FAVOR VERIFIQUE E CORRIJA!!!");
+                    return false;
+                }
+                return confirm("Confima o voto selecionado: " + $("label[for='label_" + $("input[type='radio'][name='questao_" + (stepNumber + 1) + "']:checked").val() + "']")[0].innerText + "?");
             }
         }
     });
 
     $("#smartwizard").on("showStep", function(e, anchorObject, stepNumber, stepDirection) {
+        if (stepNumber > 0) {
+            if($('button.sw-btn-prev').hasClass('disabled')){
+                $('.button.sw-btn-prev').removeClass("disabled");
+            }
+        } else {
+            if(!$('button.sw-btn-prev').hasClass('disabled')){
+                $('.button.sw-btn-prev').addClass("disabled");
+            }
+        }
         if($('button.sw-btn-next').hasClass('disabled')){
             $('.button.sw-btn-next').removeClass("disabled");
-            $('#teste').removeClass("d-none");
         }
 
     });

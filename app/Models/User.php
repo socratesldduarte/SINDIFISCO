@@ -10,7 +10,7 @@ class User extends Model
     protected $fillable = [
         'poll_id', 'document', 'able', 'name', 'email', 'birthday', 'mobile', 'administrator', 'committee', 'can_be_voted', 'password', 'enabled_until',
     ];
-    protected $dates = ['created_at', 'updated_at', 'enabled_until'];
+    protected $dates = ['birthday', 'created_at', 'updated_at', 'enabled_until'];
 
     public function votes() {
         return $this->hasMany(UserVote::class, 'user_id');

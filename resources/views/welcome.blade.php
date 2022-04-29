@@ -41,6 +41,10 @@ session(['votacao_user_id' => '']);
     <label for="cpf" class="sr-only">CPF</label>
     <input type="text" name="cpf" id="cpf" class="form-control" placeholder="CPF" required autofocus maxlength="11">
 
+    <label for="birthday" class="sr-only is-invalid">Data de Nascimento</label>
+    <input type="text" name="birthday" id="birthday" class="form-control" placeholder="Nascimento (01/01/1900)" maxlength="20">
+    @error('birthday')<div class="alert alert-danger">{{ $message }}</div>@enderror
+
     <label for="senha" class="sr-only">Senha</label>
     <input type="password" name="senha" id="senha" class="form-control" placeholder="Senha" maxlength="20">
 

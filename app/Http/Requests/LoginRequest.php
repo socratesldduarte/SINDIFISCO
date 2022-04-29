@@ -25,6 +25,7 @@ class LoginRequest extends FormRequest
     {
         return [
             'cpf'           => 'required|max:11',
+            'birthday'      => 'required|date|date_format:d/m/Y',
         ];
     }
 
@@ -35,6 +36,8 @@ class LoginRequest extends FormRequest
             'min'           => 'O campo :attribute deve ser preenchido com pelo menos :min caracteres',
             'max'           => 'O campo :attribute deve ser preenchido com no máximo :max caracteres',
             'email'         => 'O campo :attribute deve ser um e-mail válido',
+            'date'          => 'Data inválida',
+            'date_format'         => 'Data deve ser no formato DD/MM/YYYY',
         ];
     }
 }

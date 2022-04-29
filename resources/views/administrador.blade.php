@@ -68,21 +68,21 @@
                         <input type="file" name="csvtemporario" id="csvtemporario" class="form-control">
                     </div>
                     <div class="col-3">
-                        <button type="submit" class="btn btn-group btn-warning">IMPORTAR USUÁRIOS</button>
+                        <button type="submit" class="btn btn-group btn-warning">IMPORTAR USUÁRIOS (TEMP)</button>
                     </div>
                 </div>
             </form>
-{{--            <form action="{{ route('uploadusuarios') }}" method="post" enctype="multipart/form-data" class="form-group" onsubmit="return f_ConfirmaUsuario();">--}}
-{{--                @csrf--}}
-{{--                <div class="row">--}}
-{{--                    <div class="col-9">--}}
-{{--                        <input type="file" name="csv" id="csv" class="form-control">--}}
-{{--                    </div>--}}
-{{--                    <div class="col-3">--}}
-{{--                        <button type="submit" class="btn btn-group btn-warning">CRIAR USUÁRIOS</button>--}}
-{{--                    </div>--}}
-{{--                </div>--}}
-{{--            </form>--}}
+            <form action="{{ route('uploadusuarios') }}" method="post" enctype="multipart/form-data" class="form-group" onsubmit="return f_ConfirmaUsuario();">
+                @csrf
+                <div class="row">
+                    <div class="col-9">
+                        <input type="file" name="csv" id="csv" class="form-control">
+                    </div>
+                    <div class="col-3">
+                        <button type="submit" class="btn btn-group btn-warning">CRIAR USUÁRIOS</button>
+                    </div>
+                </div>
+            </form>
         </div>
     </div>
     <h1 class="h3 mb-3 font-weight-normal">Eleições Ativas</h1>

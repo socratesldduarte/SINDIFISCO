@@ -65,5 +65,3 @@ Route::get('/javotou', function () {
 Route::get('/zeresima', function () {
     return view('zeresima');
 });
-
-Route::get('/reminder/votacao/op/28', [VotacaoController::class, 'reminderAlteracaoEstatuto']);
