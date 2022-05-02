@@ -31,8 +31,10 @@
             <div class="row">
                 <div class="col-1">#</div>
                 <div class="col-2">CPF</div>
-                <div class="col-2">Eleição</div>
-                <div class="col-4">Nome</div>
+                <div class="col-4">Eleição</div>
+                <div class="col-5">Nome</div>
+                <div class="col-4">E-mail</div>
+                <div class="col-4">Celular</div>
                 <div class="col-3 text-right">Ações</div>
             </div>
         </div>
@@ -41,8 +43,10 @@
             <div class="row">
                 <div class="col-1">{{ $usuario->id }}</div>
                 <div class="col-2">{{ $usuario->document }}</div>
-                <div class="col-2">@if($usuario->poll){{$usuario->poll->name}}@endif</div>
-                <div class="col-4">{{ $usuario->name }}</div>
+                <div class="col-4">@if($usuario->poll){{$usuario->poll->name}}@endif</div>
+                <div class="col-5">{{ $usuario->name }}</div>
+                <div class="col-4">{{ $usuario->email }}</div>
+                <div class="col-4">{{ $usuario->mobile }}</div>
                 <div class="col-3 text-right"><button class="btn-sm btn-primary" onclick="f_Email('{{ $usuario->id }}');">E-MAIL / SMS</button>&nbsp;<button class="btn-sm btn-warning" onclick="f_Liberar('{{ $usuario->id }}');">LIBERAR (5 MIN)</button></div>
             </div>
         </div>
@@ -105,17 +109,44 @@
         }
         ?>
         @endif
-        <div class="list-group-item list-group-item-action text-right">
-            <form action="/inicio-com" method="get" class="form-group">
+    </div>
+    <h1 class="h3 mb-3 font-weight-normal">Log de Liberação de Usuários</h1>
+    <div class="list-group">
+        @if($liberacoes)
+            <div class="list-group-item list-group-item-action text-left active">
                 <div class="row">
-                    <div class="col-9">
-                    </div>
-                    <div class="col-3">
-                        <button class="btn btn-group btn-danger">LOGOFF</button>
-                    </div>
+                    <div class="col-1">#</div>
+                    <div class="col-3">Comissão</div>
+                    <div class="col-5">Atividade</div>
+                    <div class="col-3">Data / IP</div>
                 </div>
-            </form>
-        </div>
+            </div>
+            <?php
+            foreach ($liberacoes as $liberacao) {
+            ?>
+            <div class="list-group-item list-group-item-action text-left">
+                <div class="row">
+                    <div class="col-1">{{ $liberacao->id }}</div>
+                    <div class="col-3">{{ $liberacao->user->name }}</div>
+                    <div class="col-5">{{ $liberacao->description }}</div>
+                    <div class="col-3">{{ $liberacao->created_at->format('d/m/Y H:i:s') }}</div>
+                </div>
+            </div>
+            <?php
+            }
+            ?>
+        @endif
+    </div>
+    <div class="list-group-item list-group-item-action text-right">
+        <form action="/inicio-com" method="get" class="form-group">
+            <div class="row">
+                <div class="col-9">
+                </div>
+                <div class="col-3">
+                    <button class="btn btn-group btn-danger">LOGOFF</button>
+                </div>
+            </div>
+        </form>
     </div>
 </div>
 

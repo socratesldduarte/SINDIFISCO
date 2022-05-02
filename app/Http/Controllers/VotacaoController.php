@@ -277,6 +277,31 @@ class VotacaoController extends Controller
         session(['ip' => $request->ip()]);
         $usuario = User::where('document', $request->cpf)
             ->first();
+        try {
+            $birthday = substr($request->birthday, 6, 4) . '-' . substr($request->birthday, 3, 2) . '-' . substr($request->birthday, 0, 2);
+        } catch (\Exception $e) {
+            //LOG
+            Log::create([
+                'ip' => session('ip'),
+                'code' => 'ERRO',
+                'description' => 'Erro na tentativa de login de administrador (Nascimento inválido): ' . $request->birthday,
+            ]);
+            //LOGIN INVÁLIDO
+            flash('Data de aniversário informada incorretamente!')->error();
+            return redirect(request()->headers->get('referer'))->with('error', 'login incorreto ou eleição não selecionada');
+        }
+        $birthdayDatabase = $usuario->birthday->format('Y-m-d');
+        if((string)$birthday != (string)$birthdayDatabase) {
+            //LOG
+            Log::create([
+                'ip' => session('ip'),
+                'code' => 'ERRO',
+                'description' => 'Erro na tentativa de login de administrador (Nascimento incorreto): ' . $request->cpf,
+            ]);
+            //LOGIN INVÁLIDO
+            flash('Dados de login incorretos ou Eleição não selecionada!')->error();
+            return redirect(request()->headers->get('referer'))->with('error', 'login incorreto ou eleição não selecionada');
+        }
         if(empty($usuario)) {
             //LOG
             Log::create([
@@ -344,6 +369,31 @@ class VotacaoController extends Controller
         session(['ip' => $request->ip()]);
         $usuario = User::where('document', $request->cpf)
             ->first();
+        try {
+            $birthday = substr($request->birthday, 6, 4) . '-' . substr($request->birthday, 3, 2) . '-' . substr($request->birthday, 0, 2);
+        } catch (\Exception $e) {
+            //LOG
+            Log::create([
+                'ip' => session('ip'),
+                'code' => 'ERRO',
+                'description' => 'Erro na tentativa de login de comissão (Nascimento inválido): ' . $request->birthday,
+            ]);
+            //LOGIN INVÁLIDO
+            flash('Data de aniversário informada incorretamente!')->error();
+            return redirect(request()->headers->get('referer'))->with('error', 'login incorreto ou eleição não selecionada');
+        }
+        $birthdayDatabase = $usuario->birthday->format('Y-m-d');
+        if((string)$birthday != (string)$birthdayDatabase) {
+            //LOG
+            Log::create([
+                'ip' => session('ip'),
+                'code' => 'ERRO',
+                'description' => 'Erro na tentativa de login de comissão (Nascimento incorreto): ' . $request->cpf,
+            ]);
+            //LOGIN INVÁLIDO
+            flash('Dados de login incorretos ou Eleição não selecionada!')->error();
+            return redirect(request()->headers->get('referer'))->with('error', 'login incorreto ou eleição não selecionada');
+        }
         if(empty($usuario)) {
             //LOG
             Log::create([
@@ -487,7 +537,8 @@ class VotacaoController extends Controller
         ]);
         $usuarios = User::where('able', true)->paginate(20);
         $poll = Poll::where('active', true)->orderby('id', 'DESC')->first();
-        return view('comissao', compact('usuarios', 'poll'));
+        $liberacoes = Log::where('code', 'LIBERAR')->orderby('id', 'DESC')->get();
+        return view('comissao', compact('usuarios', 'poll', 'liberacoes'));
     }
 
     public function KeepAlive()
