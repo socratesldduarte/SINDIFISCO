@@ -796,7 +796,7 @@ class VotacaoController extends Controller
                                 if ($user->poll) {
                                     $mesa = $user->poll->code;
                                 }
-                                $mensagem = urlencode("VOTAÇÕES SINDIFISCOP-RS - endereço " . asset('/') . "op/" . $mesa . " sua senha de acesso e: " . $senha);
+                                $mensagem = urlencode("VOTAÇÕES SINDIFISCO-RS - endereço " . asset('/') . "op/" . $mesa . " sua senha de acesso e: " . $senha);
                                 // concatena a url da api com a variável carregando o conteúdo da mensagem
                                 $url_api = "https://www.iagentesms.com.br/webservices/http.php?metodo=envio&usuario=imprensa@sindifisco-rs.org.br&senha=20082013&celular=" . $celular . "&mensagem={$mensagem}";
                                 // realiza a requisição http passando os parâmetros informados
