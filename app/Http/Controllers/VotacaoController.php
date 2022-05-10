@@ -130,6 +130,17 @@ class VotacaoController extends Controller
             $usuario = $usuario->where('poll_id', session('poll_id'));
         }
         $usuario = $usuario->first();
+        if(empty($usuario)) {
+            //LOG
+            Log::create([
+                'ip' => session('ip'),
+                'code' => 'ERRO',
+                'description' => 'Erro na tentativa de login (CPF não encontrado): ' . $request->cpf,
+            ]);
+            //LOGIN INVÁLIDO
+            flash('Dados de login incorretos ou Eleição não selecionada!')->error();
+            return redirect(request()->headers->get('referer'))->with('error', 'login incorreto ou eleição não selecionada');
+        }
         try {
             $birthday = substr($request->birthday, 6, 4) . '-' . substr($request->birthday, 3, 2) . '-' . substr($request->birthday, 0, 2);
         } catch (\Exception $e) {
@@ -150,17 +161,6 @@ class VotacaoController extends Controller
                 'ip' => session('ip'),
                 'code' => 'ERRO',
                 'description' => 'Erro na tentativa de login (Nascimento incorreto): ' . $request->cpf,
-            ]);
-            //LOGIN INVÁLIDO
-            flash('Dados de login incorretos ou Eleição não selecionada!')->error();
-            return redirect(request()->headers->get('referer'))->with('error', 'login incorreto ou eleição não selecionada');
-        }
-        if(empty($usuario)) {
-            //LOG
-            Log::create([
-                'ip' => session('ip'),
-                'code' => 'ERRO',
-                'description' => 'Erro na tentativa de login (CPF não encontrado): ' . $request->cpf,
             ]);
             //LOGIN INVÁLIDO
             flash('Dados de login incorretos ou Eleição não selecionada!')->error();
@@ -277,6 +277,17 @@ class VotacaoController extends Controller
         session(['ip' => $request->ip()]);
         $usuario = User::where('document', $request->cpf)
             ->first();
+        if(empty($usuario)) {
+            //LOG
+            Log::create([
+                'ip' => session('ip'),
+                'code' => 'ERRO',
+                'description' => 'Erro na tentativa de login de administrador (CPF não encontrado): ' . $request->cpf,
+            ]);
+            //LOGIN INVÁLIDO
+            flash('Dados de login incorretos!')->error();
+            return redirect()->route('inicio-adm');
+        }
         try {
             $birthday = substr($request->birthday, 6, 4) . '-' . substr($request->birthday, 3, 2) . '-' . substr($request->birthday, 0, 2);
         } catch (\Exception $e) {
@@ -301,17 +312,6 @@ class VotacaoController extends Controller
             //LOGIN INVÁLIDO
             flash('Dados de login incorretos ou Eleição não selecionada!')->error();
             return redirect(request()->headers->get('referer'))->with('error', 'login incorreto ou eleição não selecionada');
-        }
-        if(empty($usuario)) {
-            //LOG
-            Log::create([
-                'ip' => session('ip'),
-                'code' => 'ERRO',
-                'description' => 'Erro na tentativa de login de administrador (CPF não encontrado): ' . $request->cpf,
-            ]);
-            //LOGIN INVÁLIDO
-            flash('Dados de login incorretos!')->error();
-            return redirect()->route('inicio-adm');
         }
         //VERIFICANDO SE A SENHA ESTÁ CORRETA
         if (!Hash::check($request->senha, $usuario->password, [])) {
@@ -369,6 +369,17 @@ class VotacaoController extends Controller
         session(['ip' => $request->ip()]);
         $usuario = User::where('document', $request->cpf)
             ->first();
+        if(empty($usuario)) {
+            //LOG
+            Log::create([
+                'ip' => session('ip'),
+                'code' => 'ERRO',
+                'description' => 'Erro na tentativa de login de comissão (CPF não encontrado): ' . $request->cpf,
+            ]);
+            //LOGIN INVÁLIDO
+            flash('Dados de login incorretos!')->error();
+            return redirect()->route('inicio-com');
+        }
         try {
             $birthday = substr($request->birthday, 6, 4) . '-' . substr($request->birthday, 3, 2) . '-' . substr($request->birthday, 0, 2);
         } catch (\Exception $e) {
@@ -393,17 +404,6 @@ class VotacaoController extends Controller
             //LOGIN INVÁLIDO
             flash('Dados de login incorretos ou Eleição não selecionada!')->error();
             return redirect(request()->headers->get('referer'))->with('error', 'login incorreto ou eleição não selecionada');
-        }
-        if(empty($usuario)) {
-            //LOG
-            Log::create([
-                'ip' => session('ip'),
-                'code' => 'ERRO',
-                'description' => 'Erro na tentativa de login de comissão (CPF não encontrado): ' . $request->cpf,
-            ]);
-            //LOGIN INVÁLIDO
-            flash('Dados de login incorretos!')->error();
-            return redirect()->route('inicio-com');
         }
         //VERIFICANDO SE A SENHA ESTÁ CORRETA
         if (!Hash::check($request->senha, $usuario->password, [])) {
@@ -798,7 +798,7 @@ class VotacaoController extends Controller
                                 }
                                 $mensagem = urlencode("VOTAÇÕES SINDIFISCOP-RS - endereço " . asset('/') . "op/" . $mesa . " sua senha de acesso e: " . $senha);
                                 // concatena a url da api com a variável carregando o conteúdo da mensagem
-                                $url_api = "https://www.iagentesms.com.br/webservices/http.php?metodo=envio&usuario=Afisvec&senha=Rapunzel5&celular=" . $celular . "&mensagem={$mensagem}";
+                                $url_api = "https://www.iagentesms.com.br/webservices/http.php?metodo=envio&usuario=imprensa@sindifisco-rs.org.br&senha=20082013&celular=" . $celular . "&mensagem={$mensagem}";
                                 // realiza a requisição http passando os parâmetros informados
                                 $api_http = file_get_contents($url_api);
                                 // imprime o resultado da requisição
@@ -880,7 +880,7 @@ echo 'USUÁRIO: ' . $cpf . ', senha: ' . $senha . '<br>';
                                 }
                                 $mensagem = urlencode("VOTAÇÕES SINDIFISCO-RS - endereço " . asset('/') . "op/" . $mesa . " sua senha de acesso e: " . $senha);
                                 // concatena a url da api com a variável carregando o conteúdo da mensagem
-                                $url_api = "https://www.iagentesms.com.br/webservices/http.php?metodo=envio&usuario=Afisvec&senha=Rapunzel5&celular=" . $celular . "&mensagem={$mensagem}";
+                                $url_api = "https://www.iagentesms.com.br/webservices/http.php?metodo=envio&usuario=imprensa@sindifisco-rs.org.br&senha=20082013&celular=" . $celular . "&mensagem={$mensagem}";
                                 // realiza a requisição http passando os parâmetros informados
                                 $api_http = file_get_contents($url_api);
                                 // imprime o resultado da requisição
@@ -1302,7 +1302,7 @@ echo 'USUÁRIO: ' . $cpf . ', senha: ' . $senha . '<br>';
             }
             $mensagem = urlencode("VOTAÇÕES SINDIFISCO-RS - endereço " . asset('/') . "op/" . $mesa . " sua nova senha de acesso e: " . $senha);
             // concatena a url da api com a variável carregando o conteúdo da mensagem
-            $url_api = "https://www.iagentesms.com.br/webservices/http.php?metodo=envio&usuario=Afisvec&senha=Rapunzel5&celular=" . $celular . "&mensagem={$mensagem}";
+            $url_api = "https://www.iagentesms.com.br/webservices/http.php?metodo=envio&usuario=imprensa@sindifisco-rs.org.br&senha=20082013&celular=" . $celular . "&mensagem={$mensagem}";
             // realiza a requisição http passando os parâmetros informados
             $api_http = file_get_contents($url_api);
             // imprime o resultado da requisição
@@ -1363,7 +1363,7 @@ echo 'USUÁRIO: ' . $cpf . ', senha: ' . $senha . '<br>';
             }
             $mensagem = urlencode("VOTAÇÕES SINDIFISCO-RS - endereço " . asset('/') . "op/" . $mesa . " sua nova senha de acesso e: " . $senha);
             // concatena a url da api com a variável carregando o conteúdo da mensagem
-            $url_api = "https://www.iagentesms.com.br/webservices/http.php?metodo=envio&usuario=Afisvec&senha=Rapunzel5&celular=" . $celular . "&mensagem={$mensagem}";
+            $url_api = "https://www.iagentesms.com.br/webservices/http.php?metodo=envio&usuario=imprensa@sindifisco-rs.org.br&senha=20082013&celular=" . $celular . "&mensagem={$mensagem}";
             // realiza a requisição http passando os parâmetros informados
             $api_http = file_get_contents($url_api);
             // imprime o resultado da requisição
@@ -1423,7 +1423,7 @@ echo 'USUÁRIO: ' . $cpf . ', senha: ' . $senha . '<br>';
             }
             $mensagem = urlencode("VOTAÇÕES SINDIFISCO-RS - endereço " . asset('/') . "op/" . $mesa . " usuario liberado (5 minutos)");
             // concatena a url da api com a variável carregando o conteúdo da mensagem
-            $url_api = "https://www.iagentesms.com.br/webservices/http.php?metodo=envio&usuario=Afisvec&senha=Rapunzel5&celular=" . $celular . "&mensagem={$mensagem}";
+            $url_api = "https://www.iagentesms.com.br/webservices/http.php?metodo=envio&usuario=imprensa@sindifisco-rs.org.br&senha=20082013&celular=" . $celular . "&mensagem={$mensagem}";
             // realiza a requisição http passando os parâmetros informados
             $api_http = file_get_contents($url_api);
             // imprime o resultado da requisição
@@ -1513,7 +1513,7 @@ echo 'USUÁRIO: ' . $cpf . ', senha: ' . $senha . '<br>';
             }
             $mensagem = urlencode("VOTAÇÕES SINDIFISCO-RS - endereço " . asset('/') . "op/" . $mesa . " sua nova senha de acesso e: " . $senha);
             // concatena a url da api com a variável carregando o conteúdo da mensagem
-            $url_api = "https://www.iagentesms.com.br/webservices/http.php?metodo=envio&usuario=Afisvec&senha=Rapunzel5&celular=" . $celular . "&mensagem={$mensagem}";
+            $url_api = "https://www.iagentesms.com.br/webservices/http.php?metodo=envio&usuario=imprensa@sindifisco-rs.org.br&senha=20082013&celular=" . $celular . "&mensagem={$mensagem}";
             // realiza a requisição http passando os parâmetros informados
             $api_http = file_get_contents($url_api);
             // imprime o resultado da requisição
@@ -1601,7 +1601,7 @@ Vote na alteração do Estatuto da AFISVEC.
 Acesse o sistema de votação pelo link https://bityli.com/MY2zs com seu CPF e a senha enviada anteriormente por email e celular ou utilize o \"Solicitar Nova Senha\".
 A alteração é muito importante para o associado e para a AFISVEC.");
                 // concatena a url da api com a variável carregando o conteúdo da mensagem
-                $url_api = "https://www.iagentesms.com.br/webservices/http.php?metodo=envio&usuario=Afisvec&senha=Rapunzel5&celular=" . $celular . "&mensagem={$mensagem}";
+                $url_api = "https://www.iagentesms.com.br/webservices/http.php?metodo=envio&usuario=imprensa@sindifisco-rs.org.br&senha=20082013&celular=" . $celular . "&mensagem={$mensagem}";
                 // realiza a requisição http passando os parâmetros informados
                 $api_http = file_get_contents($url_api);
                 // imprime o resultado da requisição
