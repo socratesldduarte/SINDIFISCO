@@ -507,16 +507,17 @@ class VotacaoController extends Controller
             'ip' => session('ip'),
             'description' => 'Acesso à área administrativa',
         ]);
+        $key = $request->key;
         if ($request->key <> '') {
             $usuarios = User::where('name', 'LIKE', '%' . trim($request->key) . '%')->orderby('poll_id', 'ASC')->paginate(20);
         } else {
             $usuarios = User::orderby('poll_id', 'ASC')->paginate(20);
         }
         $polls = Poll::with('pollquestions')->where('active', true)->get();
-        return view('administrador', compact('usuarios', 'polls'));
+        return view('administrador', compact('usuarios', 'polls', 'key'));
     }
 
-    public function comissao()
+    public function comissao(Request $request)
     {
         //VERIFICANDO SESSAO
         if (!session('committee')) {
@@ -535,10 +536,15 @@ class VotacaoController extends Controller
             'ip' => session('ip'),
             'description' => 'Acesso à área da comissão',
         ]);
-        $usuarios = User::where('able', true)->paginate(20);
+        $key = $request->key;
+        if ($request->key <> '') {
+            $usuarios = User::where('name', 'LIKE', '%' . trim($request->key) . '%')->where('able', true)->paginate(20);
+        } else {
+            $usuarios = User::where('able', true)->paginate(20);
+        }
         $poll = Poll::where('active', true)->orderby('id', 'DESC')->first();
         $liberacoes = Log::where('code', 'LIBERAR')->orderby('id', 'DESC')->get();
-        return view('comissao', compact('usuarios', 'poll', 'liberacoes'));
+        return view('comissao', compact('usuarios', 'poll', 'liberacoes', 'key'));
     }
 
     public function KeepAlive()

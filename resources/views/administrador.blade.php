@@ -27,6 +27,18 @@
         @include('flash::message')
     </div>
     <div class="list-group">
+        <form name="frm_Search" id="frm_Search" method="get" action="{{route('administrador')}}">
+            <div class="list-group-item list-group-item-action text-left active">
+                <div class="row">
+                    <div class="col-9">
+                        <input type="text" name="key" value="{{$key}}">
+                    </div>
+                    <div class="col-3 text-right">
+                        <button type="submit" class="btn btn-group btn-warning">PESQUISAR</button>
+                    </div>
+                </div>
+            </div>
+        </form>
         <div class="list-group-item list-group-item-action text-left active">
             <div class="row">
                 <div class="col-1">#</div>
