@@ -515,7 +515,7 @@ class VotacaoController extends Controller
         }
         $polls = Poll::with('pollquestions')->where('active', true)->get();
         //OBTER LOGS DE LIBERAÇÃO E DE RE-ENVIO DE SENHA
-        $logs = Log::where(code, 'LIBERAR')->orWhere(code, 'ADM_RESET')->orWhere(code, 'COM_RESET')->get();
+        $logs = Log::where('code', 'LIBERAR')->orWhere('code', 'ADM_RESET')->orWhere('code', 'COM_RESET')->get();
         return view('administrador', compact('usuarios', 'polls', 'key', 'logs'));
     }
 
