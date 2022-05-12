@@ -172,6 +172,27 @@
             </form>
         </div>
     </div>
+    <h1 class="h3 mb-3 font-weight-normal">Logs Administrativos</h1>
+    <div class="list-group">
+        @foreach($logs as $log)
+            <div class="list-group-item list-group-item-action text-left active">
+                <div class="row">
+                    <div class="col-1">#</div>
+                    <div class="col-3">Data</div>
+                    <div class="col-4">Quem</div>
+                    <div class="col-4">O Que</div>
+                </div>
+            </div>
+            <div class="list-group-item list-group-item-action text-left">
+                <div class="row">
+                    <div class="col-1">{{ $log->id }}</div>
+                    <div class="col-3">{{ $log->created_at('d/m/Y H:i:s') }}</div>
+                    <div class="col-4">{{ $log->user->name }}</div>
+                    <div class="col-4">{{ $log->description }}</div>
+                </div>
+            </div>
+        @endforeach
+    </div>
 </div>
 
 <script src="{{ asset("js/app.js") }}"></script>

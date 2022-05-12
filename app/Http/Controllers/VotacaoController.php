@@ -514,7 +514,9 @@ class VotacaoController extends Controller
             $usuarios = User::orderby('poll_id', 'ASC')->paginate(20);
         }
         $polls = Poll::with('pollquestions')->where('active', true)->get();
-        return view('administrador', compact('usuarios', 'polls', 'key'));
+        //OBTER LOGS DE LIBERAÇÃO E DE RE-ENVIO DE SENHA
+        $logs = Log::where(code, 'LIBERAR')->orWhere(code, 'ADM_RESET')->orWhere(code, 'COM_RESET')->get();
+        return view('administrador', compact('usuarios', 'polls', 'key', 'logs'));
     }
 
     public function comissao(Request $request)
@@ -1282,9 +1284,9 @@ echo 'USUÁRIO: ' . $cpf . ', senha: ' . $senha . '<br>';
         //LOG
         Log::create([
             'user_id' => session('user_id'),
-            'code' => 'ADM RESET',
+            'code' => 'ADM_RESET',
             'ip' => session('ip'),
-            'description' => 'Gerada nova senha de usuário: ' . $user->document . ' - ' . $user->name . ', senha: ' . $senha,
+            'description' => 'Gerada nova senha de usuário (ADM): ' . $user->document . ' - ' . $user->name . ', senha: ' . $senha,
         ]);
         try {
             Mail::to($user->email)->send(new NovaSenhaUsuarioEmail($user, $senha));
@@ -1343,7 +1345,7 @@ echo 'USUÁRIO: ' . $cpf . ', senha: ' . $senha . '<br>';
         //LOG
         Log::create([
             'user_id' => session('user_id'),
-            'code' => 'UPLOAD',
+            'code' => 'COM_RESET',
             'ip' => session('ip'),
             'description' => 'Gerada nova senha de usuário (COMISSÃO): ' . $user->document . ' - ' . $user->name . ', senha: ' . $senha,
         ]);
@@ -1493,9 +1495,9 @@ echo 'USUÁRIO: ' . $cpf . ', senha: ' . $senha . '<br>';
         $user->save();
         //LOG
         Log::create([
-            'code' => 'UPLOAD',
+            'code' => 'SENHA RESET',
             'ip' => session('ip'),
-            'description' => 'Gerada nova senha de usuário (RESET): ' . $user->document . ' - ' . $user->name . ', senha: ' . $senha,
+            'description' => 'Gerada nova senha de usuário (AUTO RESET): ' . $user->document . ' - ' . $user->name . ', senha: ' . $senha,
         ]);
         try {
             Mail::to($user->email)->send(new NovaSenhaUsuarioEmail($user, $senha));
