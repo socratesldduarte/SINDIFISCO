@@ -49,7 +49,7 @@ session(['votacao_user_id' => '']);
     <input type="password" name="senha" id="senha" class="form-control" placeholder="Senha" maxlength="20">
 
     <button class="btn btn-lg btn-primary btn-block" onclick="f_Login();">Fazer Login</button>
-    <button class="btn btn-lg btn-secondary btn-block" onclick="f_NovaSenha();">Solicitar Nova Senha</button>
+{{--    <button class="btn btn-lg btn-secondary btn-block" onclick="f_NovaSenha();">Solicitar Nova Senha</button>--}}
 {{--    <h5 class="mt-5 mb-3 text-muted"><a href="https://afisvec.org.br/portal/wp-content/uploads/2020/05/Instruções.mp4" target="_blank">Dúvidas? Clique<br>para ver o vídeo.</a></h5>--}}
     <p class="mt-5 mb-3 text-muted">&copy; 2022- <a href="https://www.sindifisco-rs.org.br/" target="_blank">SINDIFISCO-RS</a></p>
 </form>
