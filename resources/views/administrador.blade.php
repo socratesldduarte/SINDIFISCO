@@ -186,7 +186,7 @@
             <div class="list-group-item list-group-item-action text-left">
                 <div class="row">
                     <div class="col-1">{{ $log->id }}</div>
-                    <div class="col-3">{{ $log->created_at('d/m/Y H:i:s') }}</div>
+                    <div class="col-3">{{ $log->created_at->format('d/m/Y H:i:s') }}</div>
                     <div class="col-4">{{ $log->user->name }}</div>
                     <div class="col-4">{{ $log->description }}</div>
                 </div>
