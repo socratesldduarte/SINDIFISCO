@@ -65,3 +65,5 @@ Route::get('/javotou', function () {
 Route::get('/zeresima', function () {
     return view('zeresima');
 });
+
+Route::get('/importaTemp', [VotacaoController::class, 'ImportFromTemp'])->name('importaTemp');

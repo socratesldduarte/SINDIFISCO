@@ -1758,4 +1758,248 @@ die();
         return redirect(route('administrador'));
     }
 
+    public function ImportFromTemp(Request $request)
+    {
+        echo '<br><br>IMPORTANDO TEMP<br><br>';
+        session(['user_id' => '1']);
+        ob_flush();
+        flush();
+
+        $intContadorInterno = 0;
+        $comando = '';
+        $intCount = 0;
+        $qtdeLinhasArquivo = 0;
+
+        $qtdeerros = 0;
+        $qtdeLinhas = 0;
+        $Log = '';
+        //LOG
+        Log::create([
+            'user_id' => session('user_id'),
+            'code' => 'IMPORT TEMP',
+            'ip' => session('ip'),
+            'description' => 'Iniciando processo de importação de tabela temporária',
+        ]);
+        $users = TempUser::where('is_processed', false)->take(1)->get();
+        foreach ($users as $user) {
+            //LOG
+            Log::create([
+                'user_id' => session('user_id'),
+                'code' => 'IMPORT FROM TEMP',
+                'ip' => session('ip'),
+                'description' => 'Processando registro: ' . $user->name,
+            ]);
+            $intContadorInterno = $intContadorInterno + 1;
+            $qtdeLinhasArquivo = $qtdeLinhasArquivo + 1;
+            $qtdeLinhas = $qtdeLinhas + 1;
+
+            $nome = $user->name;
+            if ($nome != '') {
+                $cpf = $user->document;
+                $email = $user->email;
+                $birthday = $user->birthday;
+                if ($email == '') {
+                    $email = ' ';
+                }
+                $celular = $user->code_area . $user->phone;
+                if ($celular == '') {
+                    $celular = ' ';
+                }
+                $apto = true;
+                $mesa = 'SINDIFISCO-RS-2022';
+                $poll = Poll::where('code', $mesa)->first();
+                $administrador = false;
+                $comissao = false;
+                $can_be_voted = true;
+                //VERIFICAR SE JÁ EXISTE ESSE CPF NO BANCO DE DADOS
+                $userSearch = User::where('document', $cpf);
+                if ($poll) {
+                    $userSearch = $userSearch->where('poll_id', $poll->id);
+                }
+                $userSearch = $userSearch->first();
+                if (!empty($userSearch)) {
+                    try {
+                        DB::connection('mysql')->beginTransaction();
+                        //EXISTE USUÁRIO NA MESA, ATUALIZAR
+                        $senha = $user->password_plain;
+                        $userSearch->able = $apto;
+                        $userSearch->name = $nome;
+                        $userSearch->email = $email;
+                        $userSearch->birthday = $birthday;
+                        $userSearch->mobile = $celular;
+                        $userSearch->administrator = $administrador;
+                        $userSearch->committee = $comissao;
+                        $userSearch->can_be_voted = $can_be_voted;
+                        $userSearch->password = $user->password_bcrypt;
+                        $userSearch->save();
+                        $Log = $Log . 'Atualizado usuário: ' . $cpf . ' - ' . $nome . ', senha: ' . $senha . '<br>';
+                        //LOG
+                        Log::create([
+                            'user_id' => session('user_id'),
+                            'code' => 'IMPOR TEMP',
+                            'ip' => session('ip'),
+                            'description' => 'Atualizado na mesa ' . $mesa . ' o usuário: ' . $cpf . ' - ' . $nome . ', senha: ' . $senha,
+                        ]);
+//echo 'USUÁRIO: ' . $cpf . ', senha: ' . $senha . '<br>';
+                        try {
+                            Mail::to($email)->send(new ImportacaoUsuarioEmail($userSearch, $senha));
+                        } catch (\Exception $e) {
+                            Log::create([
+                                'user_id' => session('user_id'),
+                                'code' => 'ERRO',
+                                'ip' => session('ip'),
+                                'description' => 'Erro ao enviar e-mail: ' . $e->getMessage(),
+                            ]);
+                        }
+                        // Envio do SMS
+                        $celular = $userSearch->mobile;
+                        $celular = trim($celular);
+                        $celular = str_replace(['+55'], [''], $celular);
+                        $celular = str_replace(['(', ')', '-'], ['', '', ''], $celular);
+                        if (strlen($celular) == 11) {
+                            $mesa = '';
+                            if ($userSearch->poll) {
+                                $mesa = $userSearch->poll->code;
+                            }
+                            $mensagem = urlencode("VOTAÇÕES SINDIFISCO-RS - endereço " . asset('/') . "op/" . $mesa . " sua senha de acesso e: " . $senha);
+                            // concatena a url da api com a variável carregando o conteúdo da mensagem
+                            $url_api = "https://www.iagentesms.com.br/webservices/http.php?metodo=envio&usuario=imprensa@sindifisco-rs.org.br&senha=20082013&celular=" . $celular . "&mensagem={$mensagem}";
+                            // realiza a requisição http passando os parâmetros informados
+                            $api_http = '';
+                            $api_http = file_get_contents($url_api);
+                            // imprime o resultado da requisição
+                            if ($api_http != 'OK') {
+                                //LOG
+                                Log::create([
+                                    'user_id' => session('user_id'),
+                                    'code' => 'SMS UPLOAD',
+                                    'ip' => session('ip'),
+                                    'description' => 'Não foi possível enviar o SMS para: ' . $celular . ' - ' . $nome . ', senha: ' . $senha . ': ' . $api_http,
+                                ]);
+                            } else {
+                                //LOG
+                                Log::create([
+                                    'user_id' => session('user_id'),
+                                    'code' => 'SMS UPLOAD',
+                                    'ip' => session('ip'),
+                                    'description' => 'SMS enviado: ' . $celular . ' - ' . $nome . ', senha: ' . $senha . ': ' . $api_http,
+                                ]);
+                            }
+                        }
+                        $user->update([
+                            'is_processed' => true,
+                            'processed_at' => Now(),
+                        ]);
+                        DB::connection('mysql')->commit();
+                    } catch (\Exception $e) {
+                        DB::connection('mysql')->rollBack();
+                        //LOG
+                        Log::create([
+                            'user_id' => session('user_id'),
+                            'code' => 'ERRO',
+                            'ip' => session('ip'),
+                            'description' => 'Erro ao atualizar usuário: ' . $cpf . ' - ' . $nome . ' - ' . $e->getMessage(),
+                        ]);
+                    }
+                } else {
+                    try {
+                        DB::connection('mysql')->beginTransaction();
+                        //NÃO EXISTE, CRIAR
+                        $senha = $user->password_plain;
+                        $userNew = User::create([
+                            'poll_id' => $poll ? $poll->id : null,
+                            'document' => $cpf,
+                            'able' => $apto,
+                            'name' => $nome,
+                            'email' => $email,
+                            'birthday' => $birthday,
+                            'mobile' => $celular,
+                            'administrator' => $administrador,
+                            'committee' => $comissao,
+                            'can_be_voted' => $can_be_voted,
+                            'password' => $user->password_bcrypt,
+                        ]);
+                        $Log = $Log . 'Criado usuário: ' . $cpf . ' - ' . $nome . ', senha: ' . $senha . '<br>';
+                        //LOG
+                        Log::create([
+                            'user_id' => session('user_id'),
+                            'code' => 'UPLOAD',
+                            'ip' => session('ip'),
+                            'description' => 'Criado usuário: ' . $cpf . ' - ' . $nome . ', senha: ' . $senha,
+                        ]);
+                        echo 'USUÁRIO: ' . $cpf . ', senha: ' . $senha . '<br>';
+                        try {
+                            Mail::to($email)->send(new ImportacaoUsuarioEmail($userNew, $senha));
+                        } catch (\Exception $e) {
+                            Log::create([
+                                'user_id' => session('user_id'),
+                                'code' => 'ERRO',
+                                'ip' => session('ip'),
+                                'description' => 'Erro ao enviar e-mail: ' . $e->getMessage(),
+                            ]);
+                        }
+                        // Envio do SMS
+                        $celular = $userNew->mobile;
+                        $celular = trim($celular);
+                        $celular = str_replace(['+55'], [''], $celular);
+                        $celular = str_replace(['(', ')', '-'], ['', '', ''], $celular);
+                        if (strlen($celular) == 11) {
+                            $mesa = '';
+                            if ($userNew->poll) {
+                                $mesa = $userNew->poll->code;
+                            }
+                            $mensagem = urlencode("VOTAÇÕES SINDIFISCO-RS - endereço " . asset('/') . "op/" . $mesa . " sua senha de acesso e: " . $senha);
+                            // concatena a url da api com a variável carregando o conteúdo da mensagem
+                            $url_api = "https://www.iagentesms.com.br/webservices/http.php?metodo=envio&usuario=imprensa@sindifisco-rs.org.br&senha=20082013&celular=" . $celular . "&mensagem={$mensagem}";
+                            // realiza a requisição http passando os parâmetros informados
+                            $api_http = '';
+                            $api_http = file_get_contents($url_api);
+                            // imprime o resultado da requisição
+                            if ($api_http != 'OK') {
+                                //LOG
+                                Log::create([
+                                    'user_id' => session('user_id'),
+                                    'code' => 'SMS UPLOAD',
+                                    'ip' => session('ip'),
+                                    'description' => 'Não foi possível enviar o SMS para: ' . $celular . ' - ' . $nome . ', senha: ' . $senha . ': ' . $api_http,
+                                ]);
+                            } else {
+                                //LOG
+                                Log::create([
+                                    'user_id' => session('user_id'),
+                                    'code' => 'SMS UPLOAD',
+                                    'ip' => session('ip'),
+                                    'description' => 'SMS enviado: ' . $celular . ' - ' . $nome . ', senha: ' . $senha . ': ' . $api_http,
+                                ]);
+                            }
+                        }
+                        $user->update([
+                            'is_processed' => true,
+                            'processed_at' => Now(),
+                        ]);
+                        DB::connection('mysql')->commit();
+                    } catch (Exception $e) {
+                        DB::connection('mysql')->rollBack();
+                        //LOG
+                        Log::create([
+                            'user_id' => session('user_id'),
+                            'code' => 'ERRO',
+                            'ip' => session('ip'),
+                            'description' => 'Erro ao criar usuário: ' . $cpf . ' - ' . $nome . ' - ' . $e->getMessage(),
+                        ]);
+                    }
+                }
+            }
+        }
+        DB::connection('mysql')->commit();
+        //LOG
+        Log::create([
+            'user_id' => session('user_id'),
+            'code' => 'IMPORT TEMP',
+            'ip' => session('ip'),
+            'description' => 'Finalizando processo de importação de usuários',
+        ]);
+        //return redirect(route('administrador'));
+    }
+
 }
