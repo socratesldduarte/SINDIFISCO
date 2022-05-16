@@ -149,6 +149,29 @@
             ?>
         @endif
     </div>
+    <h1 class="h3 mb-3 font-weight-normal">Usuários que já votaram</h1>
+    <div class="list-group">
+        <div class="list-group-item list-group-item-action text-left active">
+            <div class="row">
+                <div class="col-1">#</div>
+                <div class="col-11">Nome</div>
+            </div>
+        </div>
+        <?php
+        $countVotes = 0;
+        ?>
+        @foreach($user_votes as $user_vote)
+            <?php
+            $countVotes++;
+            ?>
+            <div class="list-group-item list-group-item-action text-left">
+                <div class="row">
+                    <div class="col-1">{{ $countVotes }}</div>
+                    <div class="col-11">{{ $user_vote->user->name }}</div>
+                </div>
+            </div>
+        @endforeach
+    </div>
     <div class="list-group-item list-group-item-action text-right">
         <form action="/inicio-com" method="get" class="form-group">
             <div class="row">

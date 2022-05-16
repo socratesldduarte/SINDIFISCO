@@ -516,7 +516,8 @@ class VotacaoController extends Controller
         $polls = Poll::with('pollquestions')->where('active', true)->get();
         //OBTER LOGS DE LIBERAÇÃO E DE RE-ENVIO DE SENHA
         $logs = Log::where('code', 'LIBERAR')->orWhere('code', 'ADM_RESET')->orWhere('code', 'COM_RESET')->get();
-        return view('administrador', compact('usuarios', 'polls', 'key', 'logs'));
+        $user_votes = UserVote::where('poll_id', $polls->first()->id)->get();
+        return view('administrador', compact('usuarios', 'polls', 'key', 'logs', 'user_votes'));
     }
 
     public function comissao(Request $request)
@@ -546,7 +547,8 @@ class VotacaoController extends Controller
         }
         $poll = Poll::where('active', true)->orderby('id', 'DESC')->first();
         $liberacoes = Log::where('code', 'LIBERAR')->orderby('id', 'DESC')->get();
-        return view('comissao', compact('usuarios', 'poll', 'liberacoes', 'key'));
+        $user_votes = UserVote::where('poll_id', $poll->id)->get();
+        return view('comissao', compact('usuarios', 'poll', 'liberacoes', 'key', 'user_votes'));
     }
 
     public function KeepAlive()
