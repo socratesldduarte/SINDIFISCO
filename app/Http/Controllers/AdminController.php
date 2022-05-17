@@ -172,7 +172,7 @@ class AdminController extends Controller
             $count = 0;
             foreach ($logs as $log) {
                 $count++;
-                $content .= $log->created_at->format('d/m/Y H:i:s') . ' ' . $log->user->name . ' executou o comando: ' . $log->description . '<br>';
+                $content .= $log->created_at->format('d/m/Y H:i:s') . ' ' . $log->user->name . ' executou o comando:<br>&nbsp;&nbsp;&nbsp;' . $log->description . '<br>';
             }
             //EMITIR RELATORIO
             Document::create([
