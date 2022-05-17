@@ -24,6 +24,7 @@ Route::get('/inicio-com', [VotacaoController::class, 'TelaInicialCom'])->name('i
 Route::get('/documentos', [AdminController::class, 'Documentos'])->name('documentos');
 Route::get('/documentos/{poll_id}/zeresima', [AdminController::class, 'Zeresima'])->name('zeresima');
 Route::get('/documentos/{poll_id}/boletimapuracao', [AdminController::class, 'BoletimApuracao'])->name('boletimapuracao');
+Route::get('/documentos/{poll_id}/relatorio', [AdminController::class, 'Relatorio'])->name('relatorio');
 Route::post('/autenticidade', [AdminController::class, 'Autenticidade'])->name('autenticidade');
 
 Route::post('/novasenha', [VotacaoController::class, 'NovaSenha'])->name('novasenha');

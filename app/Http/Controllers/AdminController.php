@@ -2,6 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Log;
+use App\Models\User;
+use App\Models\UserVote;
 use Illuminate\Http\Request;
 use App\Models\Poll;
 use App\Models\PollQuestion;
@@ -126,6 +129,62 @@ class AdminController extends Controller
         //OBTER O BOLETIM E ENVIAR PARA A VIEW
         $boletimapuracao = Document::where('poll_id', $poll_id)->where('type', 'BOLETIMAPURACAO')->first();
         $pdf = PDF::loadView('boletimapuracao', compact('boletimapuracao'));
+        return $pdf->setPaper('a4')->stream();
+    }
+
+    Public Function Relatorio($poll_id) {
+        //EXISTE A ELEIÇÃO?
+        $poll = Poll::find($poll_id);
+        if (!$poll) {
+            flash('Eleição Inexistente!')->error();
+            return redirect()->route('documentos');
+        }
+        //ELEIÇÃO JÁ FOI ABERTA?
+        if (!($poll->end < now())) {
+            flash('Eleição Ainda Não Foi Encerrada!')->error();
+            return redirect()->route('documentos');
+        }
+        $encerramento = date_create($poll->end->format('Y-m-d H:i:s'));
+        $encerramento = date_add($encerramento, date_interval_create_from_date_string(15 . " mins"));
+        //VERIFICANDO SE FOI ENCERRADA HÁ MENOS DE 15 MINUTOS
+        if (!($encerramento < now())) {
+            flash('Relatório liberado somente após 15min!')->error();
+            return redirect()->route('documentos');
+        }
+        //ELEIÇÃO JÁ POSSUI RELATÓRIO?
+        $relatorio = Document::where('poll_id', $poll_id)->where('type', 'RELATORIO')->first();
+        if (empty($relatorio)) {
+            $hash = md5(uniqid(rand(), true));
+            $content = '<div align="center"><img src="' . asset("img/sindifisco.png") . '"></div>' .
+                '<h2 style="text-align: center">RELATÓRIO DE OCORRÊNCIAS<br>'.
+                $poll->name . '</h2>';
+            //VOTANTES
+            $votantes = User::whereIn('id', UserVote::where('poll_id', $poll_id)->pluck('user_id')->toArray())->orderby('name')->get();
+            $content .= '<h3 style="text-align: center">LISTAGEM DE VOTANTES</h3>';
+            $count = 0;
+            foreach ($votantes as $votante) {
+                $count++;
+                $content .= $count . ' ' . $votante->name . '<br>';
+            }
+            //OCORRENCIAS
+            $logs = Log::where('code', 'LIBERAR')->orWhere('code', 'ADM_RESET')->orWhere('code', 'COM_RESET')->get();
+            $content .= '<h3 style="text-align: center">COMANDOS ADMINISTRATIVOS</h3>';
+            $count = 0;
+            foreach ($logs as $log) {
+                $count++;
+                $content .= $log->created_at->format('d/m/Y H:i:s') . ' ' . $log->user->name . ' executou o comando: ' . $log->description . '<br>';
+            }
+            //EMITIR RELATORIO
+            Document::create([
+                'poll_id' => $poll_id,
+                'type' => 'RELATORIO',
+                'hash' => $hash,
+                'content' => $content,
+            ]);
+        }
+        //OBTER O RELATORIO E ENVIAR PARA A VIEW
+        $relatorio = Document::where('poll_id', $poll_id)->where('type', 'RELATORIO')->first();
+        $pdf = PDF::loadView('relatorio', compact('relatorio'));
         return $pdf->setPaper('a4')->stream();
     }
 
