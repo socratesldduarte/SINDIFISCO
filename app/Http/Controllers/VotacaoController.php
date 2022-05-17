@@ -608,6 +608,18 @@ class VotacaoController extends Controller
 
         DB::BeginTransaction();
         try {
+            //CHECK SE USUÁRIO JÁ VOTOU
+            $votou = UserVote::where('poll_id', session('poll_id'))->where('user_id', session('votacao_user_id'))->first();
+            if ($votou) {
+                //LOG
+                Log::create([
+                    'ip' => session('ip'),
+                    'code' => 'ERRO',
+                    'description' => 'Erro na tentativa de registro de voto (Usuário já votou): ' . session('votacao_user_id'),
+                ]);
+                //USUÁRIO JÁ VOTOU
+                return redirect()->route('javotou');
+            }
             //CRIAR O VOTO
             $voto = md5(uniqid(rand(), true));
             UserVote::create([
