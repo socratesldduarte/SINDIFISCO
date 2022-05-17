@@ -172,7 +172,11 @@ class AdminController extends Controller
             $count = 0;
             foreach ($logs as $log) {
                 $count++;
-                $content .= $log->created_at->format('d/m/Y H:i:s') . ' ' . $log->user->name . ' executou o comando:<br>&nbsp;&nbsp;&nbsp;' . $log->description . '<br>';
+                $description = $log->description;
+                if (strpos($description, ", senha:") > 0) {
+                    $description = substr($description, 0, strpos($description, ", senha:"));
+                }
+                $content .= $log->created_at->format('d/m/Y H:i:s') . ' ' . $log->user->name . ' executou o comando:<br>&nbsp;&nbsp;&nbsp;' . $description . '<br>';
             }
             //EMITIR RELATORIO
             Document::create([
@@ -185,7 +189,7 @@ class AdminController extends Controller
         //OBTER O RELATORIO E ENVIAR PARA A VIEW
         $relatorio = Document::where('poll_id', $poll_id)->where('type', 'RELATORIO')->first();
         $pdf = PDF::loadView('relatorio', compact('relatorio'));
-        return $pdf->setPaper('a4')->stream();
+        return $pdf->setPaper('a4', 'landscape')->stream();
     }
 
     public function Autenticidade(Request $request) {
